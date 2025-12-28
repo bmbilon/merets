@@ -1,6 +1,6 @@
-# Welcome to your Expo app 👋
+# Merets
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A family task and commitment tracking platform built with Expo. Earn Merets (effort currency), build Rep (reputation), and manage commitments.
 
 ## Get started
 

@@ -1,0 +1,535 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { View, FlatList, Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Notifications from "expo-notifications";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import {
+  Provider as PaperProvider,
+  Button,
+  Card,
+  Text,
+  TextInput,
+  SegmentedButtons,
+  Chip,
+  ProgressBar,
+  Divider,
+  Avatar,
+} from "react-native-paper";
+
+type Status = "SUBMITTED" | "APPROVED" | "REJECTED" | "COMPLETED" | "MISSED";
+
+type Kid = {
+  id: string;
+  name: string;
+  stickerCount: number;
+  lifetimeStickers: number;
+  balanceCents: number;
+  streakDays: number;
+  lastStickerDate?: string; // YYYY-MM-DD
+};
+
+type Commitment = {
+  id: string;
+  kidId: string;
+  title: string;
+  details?: string;
+  date: string; // YYYY-MM-DD
+  effortMin: number;
+  status: Status;
+  createdAt: number;
+  approvedAt?: number;
+  decidedAt?: number;
+  decidedBy?: "MOM" | "DAD";
+};
+
+type Store = {
+  kids: Kid[];
+  commitments: Commitment[];
+  taskLibrary: { title: string; details?: string; effortMin: number; uses: num  taskLibrary: { title: string; details?: string; ely?: string }; // YYYY-WW, YYYY-MM
+};
+
+const STORAGE_KEY = "commitconst STORAGE_KEY = "commitconst STORAGE_KEY = "commitconst STOR const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function weekKey(dateStr: string) {
+  //  //  //  //ish week key: YYYY-W##
+  const d = new Date(dateStr + "T00:00:00");
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7; // Mon=0
+  target.setDate(target.getDate() - dayNr  targ // Thu
+  const firstThu = n  const firstThu tFullYear(), 0, 4);
+  const firstDayNr = (firstThu.getDay() + 6) % 7;
+  firstThu.setDate(firstThu.getDate() - firstDayNr + 3);
+  const weekNo = 1 + Math.round((target.getTime() - firstThu.getTime()) / (7 * 24 * 3600 * 1000));
+  return `${target.getFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+}
+
+function monthKey(dateStr: string) {
+  return dateStr.slice(0, 7); // YYYY-MM
+}
+
+function uid() {
+  return Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+}
+
+async function loadStore(): Promise<Store> {
+  const raw = await AsyncStorage.getItem(STORAGE_KEY);
+  if (raw) return JSON.parse(raw);
+
+  // seed with two kids  // seed with two kids  // seed with two kids eded: Store = {
+    kids: [
+      { id: "kid1", name: "Kid 1", stickerCount: 0, lifetimeStickers: 0, balanceCents: 0, streakDays: 0 },
+      { id: "kid2", name: "Kid 2", stickerCount: 0, lifetimeStickers: 0, balanceCents: 0, streakDays: 0 },
+    ],
+    commitments: [],
+    taskLibrary: [
+      { title: "Keep sink clear of dishes all day", details: "Dishwasher empty or loaded and running towards a cycle.", effortMin: 60, uses: 1 },
+      { title: "Clear snow from walkways", details: "Keep walkways safe. Bring deliveries in the same day.", effortMin: 60, uses: 1 },
+      { title: "Schoolwork sprint", details: "45–90 minutes: finish assignments due this week.", effortMin: 60, uses: 1 },
+    ],
+    lastBonusPaid: {},
+  };
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
+  return seeded;
+}
+
+async function saveStore(store: Store) {
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+}
+
+/**
+ * Bonuses:
+ * - Weekly: if stickers earned in that week >=5 => +$50 once per week
+ * - Monthly: if stickers earned in that month >=20 => +$500 once per month
+ *
+ * Here we use COMPLETED commitments as "stickers earned".
+ */
+function countCompletedForKid(store: Store, kidId: string, predicate: (c: Commitment) => boolean) {
+  return store.commitments.filter((c) => c.kidId === kidId && c.status === "COMPLETED" && predicate(c)).length;
+}
+
+function dollars(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
+// Notifications settings
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({ shouldShowAlert: true, shouldPlaySound: false, shouldSetBadge: false }),
+});
+
+const Stack = createNativeStackNavigator();
+
+function useStore() {
+  const [store, setStore] = useState<Store | null>(null);
+
+  useEffect(() => {
+    loadStore().then(setStore);
+  }, []);
+
+  const persist = async (next: Store) => {
+    setStore(next);
+    await saveStore(next);
+  };
+
+  return { store, persist };
+}
+
+function scheduleDailyReminders() {
+  // 6pm reminder: "Wrap up commitments"
+  // 9am reminder: "Pick a commitment"
+  // (Expo requires permissions; schedule only after user grants)
+  return Promise.all([
+    Notifications.schedul  otificationAsync({
+      content: { title: "Commitment time", body: "Pick a commitment for today or tomorrow." },
+      trigger: { hour: 9, minute: 0, repeats: true },
+    }),
+    Notifications.scheduleNotificationAsync({
+      content: { title: "Check-in", body: "Finish your commitment and ask for a sticker check!" },
+      trigger: { hour: 18, minute: 0, repeats: true },
+    }),
+  ]);
+}
+
+// --- Screens ---
+
+function HomeScreen({ navigation }: any) {
+  const { stor   persist } = useStore();
+  const [kidId, setKidId] = useState("kid1");
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status !== "granted") {
+        const res = await Notifications.re        const res = awa;
+        if (res.status === "granted") {
+          await scheduleDailyReminders();
+        }
+      }
+    })();
+  }, []);
+
+  if (!store) return <View style={{ padding: 16 }}><Text>Loading…</Text></View>;
+
+  const kid = store.kids.find((k) => k.id === kidId)!;
+
+  const today = todayStr(0);
+  const tomorrow = todayStr(1);
+
+  const myToday = store.commitments.filter((c) => c.kidId === kidId && c.date === today && c.status !== "REJECTED");
+  const myTomorrow = store.commitments.filter((c) => c.kidId === kidId && c.date === tomorrow && c.status !== "REJECTED");
+
+  const weeklyCompleted = countCompletedForKid(store, kidId, (c) => weekKey(c.date) === weekKey(today));
+  const monthlyCompleted = countCompletedForKid(store, kidId, (c) => monthKey(c.date) === monthKey(today));
+
+  const weeklyProgress = Math.min(1, weeklyCompleted / 5);
+  const monthlyProgress = Math.min(1, monthlyCompleted / 20);
+
+  return (
+    <View style={{ padding: 16, gap: 12 }}>
+      <Card>
+        <Card.Content style={{ gap: 10 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Avatar.Text size={40} label={kid.name.slice(0, 1).toUpperCase()} />
+            <View style={{ flex: 1 }}>
+              <Text variant="titleLarge">Hi {kid.name}</Text>
+              <Text variant="bodyMedium">Stickers: {kid.stickerCount} • Money: {dollars(kid.balanceCents)}</Text>
+            </View>
+          </View>
+
+          <SegmentedButtons
+            value={kidId}
+            onValueChange={setKidId}
+            buttons={store.kids.map((k) => ({ value: k.id, label: k.name }))}
+          />
+
+          <Button mode="contained" onPress={() => navigation.navigate("Create", { kidId })}>
+            Make a commitment
+          </Button>
+
+          <Button mode="outlined" onPress={() => navigation.navigate("Parent", { kidId })}>
+            Parent check (approve / stickers)
+          </Button>
+        </Card.Content>
+      </Card>
+
+      <Card>
+        <Card.Content style={{ gap: 6 }}>
+          <Text variant="titleMedium">Weekly bonus progress ($50 at 5 stickers)</Text>
+          <ProgressBar progress={weeklyProgress} />
+          <Text variant="bodySmall">{weeklyCompleted}/5 completed this week</Text>
+
+          <Divider style={{ marginVertical: 8 }} />
+
+          <Text variant="titleMedium">Monthly bonus progress ($500 at 20 stickers)</Text>
+          <ProgressBar progress={monthlyProgress} />
+          <Text variant="bodySmall">{monthlyCompleted}/20 completed this month</Text>
+        </Card.Content>
+      </Card>
+
+      <Card>
+        <Card.Content style={{ gap: 8 }}>
+          <Text variant="titleMedium">Today ({today})</Text>
+          {myToday.length === 0 ? <Text>No commitments yet.</Text> : (
+            <FlatList
+              data={myToday}
+              keyExtractor={(x) => x.id}
+              renderItem={({ item }) => <CommitmentRow item={item} />}
+            />
+          )}
+          <Divider style={{ marginVertical: 8 }} />
+          <Text variant="titleMedium">Tomorrow ({tomorrow})</Text>
+          {myTomorrow.length === 0 ? <Text>No commitments yet.</Text> : (
+            <FlatList
+              data={myTomorrow}
+              keyExtractor={(x) => x.id}
+              renderItem={({ item }) => <CommitmentRow item={item} />}
+            />
+          )}
+        </Card.Content>
+      </Card>
+    </View>
+  );
+}
+
+function CommitmentRow({ item }: { item: Commitment }) {
+  const statusChip = (() => {
+    const map: Record<Status, { label: string }> = {
+      SUBMITTED: { label: "Waiting approval" },
+      APPROVED: { label: "Approved" },
+      REJECTED: { label: "Rejected" },
+      COMPLETED: { label: "🙂 Smiley" },
+      MISSED: { label: "⭕ Missed" },
+    };
+    return map[item.status];
+  })();
+
+  return (
+    <C    <C    <C    <C    <ical: 6 }}>
+      <Card.Content style={{ gap: 6 }}>
+        <Text variant="titleSmall">{item.title}</Text>
+        {!!item.details && <Text variant="bodySmall">{item.details}</Text>}
+        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+          <Chip>{statusChip.label}</Chip>
+          <Chip>{item.effortMin} min</Chip>
+        </View>
+      </Card.Content>
+    </Card>
+  );
+}
+
+function CreateScreen({ route, navigation }: any) {
+  const { store, persist } = useStore();
+  const kidId = route.params.kidId as string;
+
+  const [title, setTitle] = useState("");
+  const [details, setDetails] = useState("");
+  const [day, setDay] = useState<"today" | "tomorrow">("today");
+  const [effortMin, setEffortMin] = useState("60");
+
+  const date = day === "today" ? todayStr(0) : todayStr(1);
+
+  if (!store) return <View style={{ padding: 16 }}><Text>Loading…</Text></View>;
+
+  const suggestions = store.taskLibrary
+    .slice()
+    .sort((a, b) => b.uses - a.uses)
+    .slic    .slic    .slic    .slic    .slic(s: any) => {
+    setTitle(s.title);
+    setDetails(s.details ?? "");
+    setEffortMin(String(s.effortMin));
+  };
+
+  const submit = async () => {
+    const t = title.trim();
+    if (!t) return Alert.alert("Missing title", "Please type a commitment.");
+
+    const effort = Math.max(15, Math.min(180, parseInt(effortMin || "60", 10) || 60));
+
+    const c: Commitment = {
+      id: uid(),
+      kidId,
+      title: t,
+      details: details.trim() || undefined,
+      date,
+      effortMin: effort,
+      status: "SUBMITTED",
+      createdAt: Date.now(),
+    };
+
+    // update task library usage
+    const lib = [...store.taskLibrary];
+    const idx = lib.findIndex((x) => x.title.toLowerCase() === t.toLowerCase());
+    if (idx >= 0) lib[idx] = { ...lib[idx], uses: lib[idx].uses + 1, details: c.details ?? lib[idx].details, effortMin: effort };
+    else lib.push({ title: t, details: c.details, effortMin: effort, uses: 1 });
+
+    await persist({ ...store, commitments: [c, ...store.commitments], taskLibrary: lib });
+    navigation.goBack();
+  };
+
+  return (
+    <View style={{ padding: 16, gap: 12 }}>
+      <Card>
+        <Card.Content style={{ gap: 10 }}>
+          <Text variant="titleLarge">Make a commitment</Text>
+
+          <SegmentedButtons
+            value={day}
+            onValueChange={(v) => setDay(v as any)}
+            buttons={[
+              { value: "today", label: "Today" },
+              { value: "tomorrow", label: "Tomorrow" },
+            ]}
+          />
+
+          <TextInput label="What will you do?" value={title} onChangeText={setTitle} />
+          <TextInput label="Details (optional)" value={details} onChangeText={setDetails} multiline />
+
+          <TextInput
+            label="Effort (minutes, usually 45–90)"
+            keyboardType="numeric"
+            value={effortMin}
+            onChangeText={setEffortMin}
+          />
+
+          <Button mode="contained" onPress={submit}>
+            Submit for approval
+          </Button>
+        </Card.Content>
+      </Card>
+
+      <Card>
+        <Card.Content style={{ gap: 8 }}>
+          <Text variant="titleMedium">Quick picks</Text>
+          {suggestions.map((s) => (
+            <Button key={s.title} mode="outlined" onPress={() => onUseSuggestion(s)}>
+              {s.title}
+            </Button>
+          ))}
+        </Card.Content>
+      </Card>
+    </View>
+  );
+}
+
+function ParentScreen({ route }: any) {
+  const { store, persist } = useStore();
+  const kidId = route.params.kidId as string;
+
+  const [role, setRole] = useState<"MOM" | "DAD">("DAD");
+
+  if (!store) return <View style={{ padding: 16 }}><Text>Loading…</Text></View>;
+
+  const kid = store.kids.find((k) => k.id === kidId)!;
+  const today = todayStr(0);
+
+  const pending = store.commitments.filter((c) => c.kidId === kidId && c.status === "SUBMITTED");
+  const approvedToday = store.commitments.filter((c) => c.kidId === kidId && c.date === today && c.status === "APPROVED");
+
+  const applyDecision = async (commitmentId: string, status: Status) => {
+    const commitments = store.commitments.map((c) =>
+      c.id === commitmentId
+        ? { ...c, status, approvedAt: status === "APPROVED" ? Date.now() : c.approvedAt }
+        : c
+    );
+    await persist({ ...store, commitments });
+  };
+
+  const markOutcome = async (commitmentId: string, outcome: "COMPLETED" | "MISSED") => {
+    const c = store.commitments.f   ((x) => x.id === commitmentId);
+    if (!c) return;
+
+    const commitments = store.commitments.map((x) =>
+      x.id === commitmentId ? { ...x, status: outcome, decidedAt: Date.now(), decidedBy: role } : x
+    );
+
+    const kids = store.kids.map((k) => {
+      if (k.id !== kidId) return k;
+
+      if (outcome === "COMPLETED") {
+        const newStickerCount = k.stickerCount + 1;
+        const newLifetime = k.lifetimeStickers + 1;
+        const newBalance = k.balanceCents + 2000;
+
+        // streak update: if lastStickerDate was yesterday, streak++, else reset to 1
+        const yesterday = todayStr(-1);
+        const streak =
+          k.lastStickerDate === yesterday ? k.streakDays + 1 : 1;
+
+        return {
+          ...k,
+          stickerCount: newStickerCount,
+          lifetimeStickers: newLifetime,
+          balanceCents: newBalance,
+          streakDays: streak,
+          lastStickerDate: c.date,
+        };
+      } else {
+        // MISSED: revoke one sticker, min 0; no pay
+        return { ...k, stickerCount: Math.max(0, k.stickerCount - 1) };
+      }
+    });
+
+    // bonus payouts (based on COMPLETED count)
+    const nextStore: Store = { ...store, commitments, kids };
+    const wk = weekKey(today);
+    const mk = monthKey(today);
+
+    const weeklyCompleted = countCompletedForKid(nextStore, kidId, (x) => weekKey(x.date) === wk);
+    const monthlyCompleted = countCompletedForKid(nextStore, kidId, (x) => monthKey(x.date) === mk);
+
+    let bonusAdded = 0;
+
+    if (weeklyCompleted >= 5 && nextStore.lastBonusPaid?.weekly !== wk) {
+      bonusAdded += 5000; // $50
+      nextStore.lastBonusPaid = { ...(nextStore.lastBonusPaid ?? {}), weekly: wk };
+    }
+    if (monthlyCompleted >= 20 && nextStore.lastBonusPaid?.monthly !== mk) {
+      bonusAdded += 50000; // $500
+      nextStore.lastBonusPaid = { ...(nextStore.lastBonusPaid ?? {}), monthly: mk };
+    }
+    if (bonusAdded > 0) {
+      nextStore.kids = nextStore.kids.map((k) => (k.id =      nextStore.kids = nextStore.kids.map((k) s + bonusAdded } : k));
+      Alert.alert("Bonus paid", `Added ${dollars(bonusAdded)} t      d.name}'s balance.`);
+    }
+
+    await persist(nextStore);
+  };
+
+  return (
+    <View style={{ padding: 16, gap: 12 }}>
+      <Card>
+        <Card.Content style={{ gap: 10 }}>
+          <Text variant="titleLarge">Parent check</Text>
+          <Text variant="bodyMedium">
+            Kid: {kid.name} • Stickers: {kid.stickerCount} • Balance: {dollars(kid.balanceCents)} • Streak: {kid.streakDays} days
+          </Text>
+
+          <SegmentedButtons
+            value={role}
+            onValueChange={(v) => setRole(v as any)}
+            buttons={[
+              { value: "MOM", label: "Mom" },
+              { value: "DAD", label: "Dad" },
+            ]}
+          />
+        </Card.Content>
+      </Card>
+
+      <Card>
+        <Card.Content style={{ gap: 8 }}>
+          <Text variant="titleMedium">Waiting approval</Text>
+          {pending.length === 0 ? <Text>No pending items.</Text> : pending.map((c) => (
+            <Card key={c.id} style={{ marginVertical: 6 }}>
+              <Card.Content style={{ gap: 6 }}>
+                <Text variant="titleSmall">{c.title}</Text>
+                {!!c.details && <Text variant="bodySmall">{c.details}</Text>}
+                <View style={{ flexDirection: "row", gap: 10 }}>
+                  <Button mode="contained" onPress={() => applyDecision(c.id, "APPROVED")}>Approve</Button>
+                  <Button mode="outlined" onPress={() => applyDecision(c.id, "REJECTED")}>Reject</Button>
+                </View>
+              </Card.Content>
+            </Card>
+          ))}
+        </Card.Content>
+      </Card>
+
+      <Card>
+        <Card.Content style={{ gap: 8 }}>
+          <Text variant="titleMedium">Approved for today ({today})</Text>
+          {approvedToday.length === 0 ? <Text>No approved commitments for today.</Text> : approvedToday.map((c) => (
+            <Card key={c.id} style={{ marginVertical: 6 }}>
+              <Card.Content style={{ gap: 6 }}>
+                <Text variant="titleSmall">{c.title}</Text>
+                {!!c.details && <Text variant="bodySmall">{c.details}</Text>}
+                <View style={{ flexDirection: "row", gap: 10 }}>
+                  <Button mode="contained" onPress={() => markOutcome(c.id, "COMPLETED")}>🙂 Smiley</Button>
+                  <Button mode="outlined" onPress={() => markOutcome(c.id, "MISSED")}>⭕ Missed</Button>
+                </View>
+              </Card.Content>
+            </Card>
+          ))}
+        </Card.Content>
+      </Card>
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <PaperProvider>
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen name="Home" component={HomeScreen} options={{ title: "Commitments" }} />
+          <Stack.Screen name="Create" component={CreateScreen} options={{ title: "New Commitment" }} />
+          <Stack.Screen name="Parent" component={ParentScreen} options={{ title: "Parent Check" }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </PaperProvider>
+  );
+}

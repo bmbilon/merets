@@ -24,10 +24,50 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="skills"
+        options={{
+          title: 'Skills',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="trophy.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="family-chat"
+        options={{
+          title: 'Chat',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="message.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="parent"
+        options={{
+          title: 'Parent',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="lock.fill" color={color} />,
+        }}
+      />
+      
+      {/* Hidden tabs - accessible but not shown in navigation */}
+      <Tabs.Screen
+        name="aveya-dashboard"
+        options={{
+          href: null, // This hides it from the tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="onyx-dashboard"
+        options={{
+          href: null, // This hides it from the tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="database-test"
+        options={{
+          href: null, // This hides it from the tab bar
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          href: null, // This hides it from the tab bar
         }}
       />
     </Tabs>

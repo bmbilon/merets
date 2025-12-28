@@ -37,7 +37,7 @@ export default function MainApp() {
 
   // Show user selection if no user is selected
   if (!selectedUser) {
-    const UserSelectScreen = require('../../components/screens/user-select').default;
+    const UserSelectScreen = require('./user-select').default;
     return <UserSelectScreen onUserSelected={(user: string) => setSelectedUser(user)} />;
   }
 
