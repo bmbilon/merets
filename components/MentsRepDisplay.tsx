@@ -241,7 +241,7 @@ export const MentsRepDisplay: React.FC<MentsRepDisplayProps> = ({
       <TouchableOpacity onPress={handlePress}>
         <Surface style={[styles.compactContainer, { backgroundColor: `${repColor}20` }]}>
           <View style={styles.compactContent}>
-            <Text style={styles.compactLabel}>MentsRep™</Text>
+<Text style={styles.compactLabel}>Rep</Text>
             <Text style={[styles.compactScore, { color: repColor }]}>
               {formatMentsRep(reputation.mentsRep)}
             </Text>
@@ -266,8 +266,8 @@ export const MentsRepDisplay: React.FC<MentsRepDisplayProps> = ({
               {/* Header */}
               <View style={styles.header}>
                 <View style={styles.headerLeft}>
-                  <Text style={styles.mentsRepLabel}>
-                    MentsRep™ {getReputationEmoji(reputation.repLevel)}
+<Text style={styles.mentsRepLabel}>
+                    Rep {getReputationEmoji(reputation.repLevel)}
                   </Text>
                   <Text style={[styles.levelText, { color: repColor }]}>
                     {reputation.repLevel} Level
@@ -284,8 +284,8 @@ export const MentsRepDisplay: React.FC<MentsRepDisplayProps> = ({
               </View>
 
               {!showParentView && (
-                <Text style={styles.tooltip}>
-                  Your Rep reflects how reliably and well you complete Ments
+<Text style={styles.tooltip}>
+                  Based on completed work and quality
                 </Text>
               )}
 

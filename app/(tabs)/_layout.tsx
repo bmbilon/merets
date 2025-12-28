@@ -44,6 +44,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="lock.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="issuer-dashboard"
+        options={{
+          title: 'Issuer',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="checkmark.seal.fill" color={color} />,
+        }}
+      />
       
       {/* Hidden tabs - accessible but not shown in navigation */}
       <Tabs.Screen

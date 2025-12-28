@@ -206,6 +206,19 @@ export const MentContract: React.FC<MentContractProps> = ({
                     {getQualityStandards(task.is_urgent, task.priority_type)}
                   </Text>
                 </View>
+</View>
+
+              {/* Policy Notes */}
+              <View style={{ backgroundColor: '#EEF7EE', padding: 12, borderRadius: 8, marginBottom: 12 }}>
+                <Text style={{ color: '#2E7D32' }}>
+                  • Completion earns payment (Credits are guaranteed on completion).
+                </Text>
+                <Text style={{ color: '#2E7D32' }}>
+                  • Quality earns Meret: higher ratings increase Merets earned.
+                </Text>
+                <Text style={{ color: '#2E7D32' }}>
+                  • Redo may be requested for low ratings (non‑punitive).
+                </Text>
               </View>
 
               {/* Priority Badge */}
