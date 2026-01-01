@@ -35,7 +35,7 @@ export default function SubmitWorkModal({
 
     // Launch image picker
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsMultipleSelection: true,
       quality: 0.8,
       selectionLimit: 3 - selectedPhotos.length
@@ -48,21 +48,33 @@ export default function SubmitWorkModal({
   };
 
   const takePhoto = async () => {
-    // Request camera permission
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your camera');
-      return;
-    }
+    try {
+      // Check if camera is available
+      const cameraAvailable = await ImagePicker.getCameraPermissionsAsync();
+      
+      // Request camera permission
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please allow access to your camera');
+        return;
+      }
 
-    // Launch camera
-    const result = await ImagePicker.launchCameraAsync({
-      quality: 0.8,
-      allowsEditing: true
-    });
+      // Launch camera
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 0.8,
+        allowsEditing: true
+      });
 
-    if (!result.canceled && result.assets && result.assets[0]) {
-      setSelectedPhotos([...selectedPhotos, result.assets[0].uri].slice(0, 3));
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setSelectedPhotos([...selectedPhotos, result.assets[0].uri].slice(0, 3));
+      }
+    } catch (error) {
+      console.log('[CAMERA] Camera not available (simulator?):', error);
+      Alert.alert(
+        'Camera not available',
+        'Camera is not available on simulator. Please use "Choose from Library" instead.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
