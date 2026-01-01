@@ -19,15 +19,27 @@ interface Ment {
 }
 
 interface MentsMarketplaceProps {
+  userName?: string;
+  userColor?: string;
+  ments?: Ment[];
+  activeMents?: Ment[];
   onMentPress: (ment: Ment) => void;
+  onRefresh?: () => void;
 }
 
-export default function MentsMarketplace({ onMentPress }: MentsMarketplaceProps) {
+export default function MentsMarketplace({ 
+  userName,
+  userColor,
+  ments: externalMents,
+  activeMents: externalActiveMents,
+  onMentPress,
+  onRefresh
+}: MentsMarketplaceProps) {
   const [activeSection, setActiveSection] = useState<'recommended' | 'quick' | 'available' | 'active'>('recommended');
   const [refreshing, setRefreshing] = useState(false);
 
-  // Mock data - replace with real data from Supabase
-  const ments: Ment[] = [
+  // Use external ments if provided, otherwise use mock data
+  const ments: Ment[] = externalMents || [
     {
       id: '1',
       title: 'Clean garage',
