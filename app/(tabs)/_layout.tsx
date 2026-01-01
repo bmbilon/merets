@@ -52,7 +52,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: userRole === 'earner' ? 'Browse' : 'Family',
+          title: userRole === 'earner' ? 'Browse' : 'Dashboard',
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={24} 
@@ -84,15 +84,15 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Parent: Approve */}
+      {/* Parent: Approve/Tasks */}
       <Tabs.Screen
         name="parent"
         options={{
-          title: userRole === 'parent' ? 'Approve' : 'Review',
+          title: 'Tasks',
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={24} 
-              name={userRole === 'parent' ? 'checkmark.seal.fill' : 'checklist'} 
+              name="checkmark.seal.fill" 
               color={color} 
             />
           ),
@@ -100,15 +100,15 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Parent/Issuer: Credits/Payouts/Network */}
+      {/* Parent/Issuer: Payouts/Network */}
       <Tabs.Screen
         name="family-chat"
         options={{
-          title: userRole === 'parent' ? 'Payouts' : 'Network',
+          title: 'Payouts',
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={24} 
-              name={userRole === 'parent' ? 'banknote' : 'person.3.fill'} 
+              name="banknote" 
               color={color} 
             />
           ),
