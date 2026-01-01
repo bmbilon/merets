@@ -75,7 +75,7 @@ export default function UserSelectScreen({ onUserSelected }: UserSelectProps) {
               Welcome to
             </Text>
             <Text variant="displayMedium" style={{ fontWeight: "bold", color: "#6200ee", textAlign: "center" }}>
-              Kidmitment
+              Merets
             </Text>
             <Text variant="bodyLarge" style={{ color: "#666", textAlign: "center", marginTop: 8 }}>
               Who's using the app today?
