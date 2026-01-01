@@ -83,19 +83,33 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
 
   const fetchMents = async () => {
     try {
+      console.log('[FETCH] Starting to fetch ments from Supabase...');
       setLoading(true);
+      
       const { data, error } = await supabase
         .from('task_templates')
         .select('*')
         .order('skill_category', { ascending: true });
 
+      console.log('[FETCH] Supabase response:', { 
+        dataCount: data?.length, 
+        hasError: !!error,
+        errorDetails: error 
+      });
+
       if (error) {
-        console.error('Error fetching ments:', error);
+        console.error('[ERROR] Error fetching ments:', error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        console.warn('[WARN] No tasks found in database');
+        setMents([]);
         return;
       }
 
       // Transform Supabase data to match component format
-      const transformedMents = data?.map(task => ({
+      const transformedMents = data.map(task => ({
         id: task.id,
         title: task.title,
         description: task.description || '',
@@ -109,13 +123,16 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
         issuerTrust: 'Family',
         issuerRep: 100,
         status: task.is_micro_task ? 'quick' : 'available'
-      })) || [];
+      }));
 
+      console.log('[SUCCESS] Transformed', transformedMents.length, 'ments');
+      console.log('[SUCCESS] First ment:', transformedMents[0]);
       setMents(transformedMents);
     } catch (error) {
-      console.error('Error in fetchMents:', error);
+      console.error('[EXCEPTION] Error in fetchMents:', error);
     } finally {
       setLoading(false);
+      console.log('[FETCH] Fetch complete, loading set to false');
     }
   };
 
@@ -154,6 +171,8 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
       console.error('Error creating commitment:', error);
     }
   };
+
+  console.log('[RENDER] EarnerMarketplace render - loading:', loading, 'ments count:', ments.length);
 
   if (loading) {
     return (
