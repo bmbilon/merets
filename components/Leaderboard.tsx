@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { Surface, Text, Avatar, Chip } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { SupabaseService } from '../lib/supabase-service';
+import { supabase } from '../lib/supabase';
 import LoadingState from './LoadingState';
 import EmptyState from './EmptyState';
 
@@ -34,7 +34,7 @@ export default function Leaderboard({ currentUserId, compact = false }: Leaderbo
     try {
       setLoading(true);
       // Get all earner users sorted by XP
-      const { data, error} = await SupabaseService.getSupabaseClient()
+      const { data, error} = await supabase
         .from('user_profiles')
         .select('*')
         .eq('role', 'kid')
