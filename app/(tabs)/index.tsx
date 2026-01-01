@@ -6,8 +6,9 @@ import {
   Text,
   IconButton,
 } from "react-native-paper";
-import MentsMarketplace from "@/components/MentsMarketplace";
+import EarnerTaskMarket from "@/components/EarnerTaskMarket";
 import MentDetailModal from "@/components/MentDetailModal";
+import CommitmentCelebration from "@/components/CommitmentCelebration";
 import { supabase } from "@/lib/supabase";
 import { SupabaseService } from "@/lib/supabase-service";
 
@@ -75,6 +76,7 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
   const [showDetail, setShowDetail] = useState(false);
   const [ments, setMents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   // Fetch tasks from Supabase
   useEffect(() => {
@@ -175,6 +177,9 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
       console.log('Commitment created:', commitment.id);
       setShowDetail(false);
       
+      // Show celebration
+      setShowCelebration(true);
+      
       // Refresh the ments list
       await fetchMents();
     } catch (error) {
@@ -201,13 +206,14 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
           style={{ backgroundColor: 'rgba(255,255,255,0.9)' }}
         />
       </View>
-      <MentsMarketplace 
+      <EarnerTaskMarket 
         userName={userName}
-        userColor={userColor}
-        ments={ments}
-        activeMents={[]}
-        onMentPress={(ment) => {
-          setSelectedMent(ment);
+        tasks={ments}
+        activeTasks={[]}
+        totalEarnings={0}
+        currentStreak={0}
+        onTaskPress={(task) => {
+          setSelectedMent(task);
           setShowDetail(true);
         }}
         onRefresh={fetchMents}
@@ -217,6 +223,10 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
         onDismiss={() => setShowDetail(false)}
         ment={selectedMent}
         onCommit={handleCommit}
+      />
+      <CommitmentCelebration
+        visible={showCelebration}
+        onComplete={() => setShowCelebration(false)}
       />
     </View>
   );

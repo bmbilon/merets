@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
-import { Surface, Text, Chip, Avatar, Badge, IconButton } from 'react-native-paper';
+import { Surface, Text, Chip, Avatar, Badge, IconButton, Searchbar } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 
 interface Ment {
@@ -35,47 +35,38 @@ export default function MentsMarketplace({
   onMentPress,
   onRefresh: onRefreshProp
 }: MentsMarketplaceProps) {
+  console.log('🔍 NEW MentsMarketplace with SEARCH BAR loaded!');
   const [activeSection, setActiveSection] = useState<'recommended' | 'quick' | 'available' | 'active'>('available');
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Use external ments if provided, otherwise use mock data
-  const ments: Ment[] = externalMents || [
-    {
-      id: '1',
-      title: 'Clean garage',
-      description: 'Sweep and organize tools',
-      credits: 15,
-      timeEstimate: '45 min',
-      dueDate: 'Today',
-      issuerName: 'Dad',
-      issuerTrustBadge: '⭐',
-      approvalRequired: false,
-      category: 'Chores',
-      difficulty: 'easy',
-      status: 'recommended'
-    },
-    {
-      id: '2',
-      title: 'Take out recycling',
-      description: 'Sort and take bins to curb',
-      credits: 5,
-      timeEstimate: '10 min',
-      dueDate: 'Tomorrow',
-      issuerName: 'Mom',
-      approvalRequired: false,
-      category: 'Chores',
-      difficulty: 'easy',
-      status: 'quick'
-    },
-  ];
+  const ments: Ment[] = externalMents || [];
 
-  const handleRefresh = () => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    // Fetch new data
-    setTimeout(() => setRefreshing(false), 1000);
+    if (onRefreshProp) {
+      await onRefreshProp();
+    }
+    setRefreshing(false);
   };
 
-  const onRefresh = onRefreshProp || handleRefresh;
+  // Filter and search ments
+  const filteredMents = useMemo(() => {
+    let filtered = ments.filter(m => m.status === activeSection);
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(m => 
+        m.title.toLowerCase().includes(query) ||
+        m.description.toLowerCase().includes(query) ||
+        m.category.toLowerCase().includes(query) ||
+        m.issuerName.toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
+  }, [ments, activeSection, searchQuery]);
 
   const renderMentCard = (ment: Ment) => (
     <TouchableOpacity
@@ -85,92 +76,101 @@ export default function MentsMarketplace({
     >
       <Surface
         style={{
-          marginBottom: 12,
+          marginBottom: 16,
           borderRadius: 16,
-          padding: 16,
           backgroundColor: '#fff',
           elevation: 2,
+          overflow: 'hidden'
         }}
       >
-        {/* Header Row */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-          <View style={{ flex: 1 }}>
-            <Text variant="titleMedium" style={{ fontWeight: 'bold', marginBottom: 4 }}>
-              {ment.title}
-            </Text>
-            <Text variant="bodySmall" style={{ color: '#666', marginBottom: 8 }}>
-              {ment.description}
-            </Text>
+        <View style={{ padding: 16 }}>
+          {/* Header Row */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Text variant="titleMedium" style={{ fontWeight: 'bold', marginBottom: 4 }}>
+                {ment.title}
+              </Text>
+              <Text variant="bodySmall" style={{ color: '#666', marginBottom: 8 }}>
+                {ment.description}
+              </Text>
+            </View>
+            <View style={{ alignItems: 'flex-end', marginLeft: 12 }}>
+              <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: '#4CAF50' }}>
+                ${ment.credits}
+              </Text>
+            </View>
           </View>
-          <View style={{ alignItems: 'flex-end', marginLeft: 12 }}>
-            <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: '#4CAF50' }}>
-              ${ment.credits}
-            </Text>
-          </View>
-        </View>
 
-        {/* Meta Row */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-          <Chip
-            icon={() => <IconSymbol size={14} name="clock.fill" color="#666" />}
-            compact
-            style={{ backgroundColor: '#f5f5f5' }}
-          >
-            {ment.timeEstimate}
-          </Chip>
-          <Chip
-            icon={() => <IconSymbol size={14} name="calendar" color="#666" />}
-            compact
-            style={{ backgroundColor: '#f5f5f5' }}
-          >
-            {ment.dueDate}
-          </Chip>
-          {ment.approvalRequired && (
+          {/* Meta Row */}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
             <Chip
-              icon={() => <IconSymbol size={14} name="lock.fill" color="#FF9800" />}
+              icon={() => <IconSymbol size={14} name="clock.fill" color="#666" />}
               compact
-              style={{ backgroundColor: '#FFF3E0' }}
-              textStyle={{ color: '#FF9800' }}
+              style={{ backgroundColor: '#f5f5f5' }}
             >
-              Approval needed
+              {ment.timeEstimate}
             </Chip>
-          )}
-        </View>
-
-        {/* Footer Row */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Avatar.Text size={24} label={ment.issuerName[0]} style={{ backgroundColor: '#2196F3' }} />
-            <Text variant="bodySmall" style={{ color: '#666' }}>
-              {ment.issuerName} {ment.issuerTrustBadge}
-            </Text>
+            <Chip
+              icon={() => <IconSymbol size={14} name="calendar" color="#666" />}
+              compact
+              style={{ backgroundColor: '#f5f5f5' }}
+            >
+              {ment.dueDate}
+            </Chip>
+            <Chip
+              compact
+              style={{ backgroundColor: '#E3F2FD' }}
+              textStyle={{ color: '#1976D2', fontSize: 11 }}
+            >
+              {ment.category}
+            </Chip>
+            {ment.approvalRequired && (
+              <Chip
+                icon={() => <IconSymbol size={14} name="lock.fill" color="#FF9800" />}
+                compact
+                style={{ backgroundColor: '#FFF3E0' }}
+                textStyle={{ color: '#FF9800' }}
+              >
+                Approval needed
+              </Chip>
+            )}
           </View>
-          <IconButton
-            icon={() => <IconSymbol size={20} name="arrow.right.circle.fill" color="#6200ee" />}
-            size={20}
-            onPress={() => onMentPress(ment)}
-          />
+
+          {/* Footer Row */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Avatar.Text size={24} label={ment.issuerName[0]} style={{ backgroundColor: '#2196F3' }} />
+              <Text variant="bodySmall" style={{ color: '#666' }}>
+                {ment.issuerName} {ment.issuerTrustBadge}
+              </Text>
+            </View>
+            <IconButton
+              icon={() => <IconSymbol size={20} name="arrow.right.circle.fill" color="#6200ee" />}
+              size={20}
+              onPress={() => onMentPress(ment)}
+            />
+          </View>
         </View>
       </Surface>
     </TouchableOpacity>
   );
 
   const renderSection = () => {
-    const sectionMents = ments.filter(m => m.status === activeSection);
-    
-    if (sectionMents.length === 0) {
+    if (filteredMents.length === 0) {
       return (
         <View style={{ alignItems: 'center', paddingVertical: 40 }}>
           <Text variant="bodyLarge" style={{ color: '#999', textAlign: 'center' }}>
-            {activeSection === 'active' 
-              ? 'No active ments\nBrowse available ments to get started!'
-              : 'No ments available\nCheck back soon!'}
+            {searchQuery.trim() 
+              ? `No tasks found for "${searchQuery}"`
+              : activeSection === 'active' 
+                ? 'No active ments\nBrowse available ments to get started!'
+                : 'No ments available\nCheck back soon!'}
           </Text>
         </View>
       );
     }
 
-    return sectionMents.map(renderMentCard);
+    return filteredMents.map(renderMentCard);
   };
 
   return (
@@ -179,15 +179,30 @@ export default function MentsMarketplace({
       <View style={{ 
         backgroundColor: '#fff',
         paddingTop: 60,
-        paddingBottom: 16,
         paddingHorizontal: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0'
+        paddingBottom: 16,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+        elevation: 4
       }}>
         <Text variant="headlineMedium" style={{ fontWeight: 'bold', marginBottom: 16 }}>
           Ments
         </Text>
         
+        {/* Search Bar */}
+        <Searchbar
+          placeholder="Search tasks..."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          style={{ 
+            elevation: 0, 
+            backgroundColor: '#f5f5f5', 
+            marginBottom: 12,
+            borderRadius: 12
+          }}
+          inputStyle={{ fontSize: 14 }}
+        />
+
         {/* Section Tabs */}
         <ScrollView 
           horizontal 
