@@ -567,53 +567,6 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                 theme={{ fonts: { bodyLarge: { fontSize: 16 } } }}
               />
 
-              {/* Hourly Rate */}
-              <View style={{ marginBottom: 20 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <Text variant="titleMedium" style={{ fontWeight: 'bold', fontSize: 20 }}>
-                    Hourly Rate
-                  </Text>
-                  <TextInput
-                    value={(editHourlyRate / 100).toFixed(2)}
-                    onChangeText={(text) => {
-                      const dollars = parseFloat(text) || 0;
-                      const cents = Math.round(dollars * 100);
-                      const newHourlyRate = Math.max(100, Math.min(10000, cents));
-                      setEditHourlyRate(newHourlyRate);
-                      setEditingTask({
-                        ...editingTask,
-                        base_pay_cents: Math.round((newHourlyRate / 60) * editingTask.effort_minutes)
-                      });
-                    }}
-                    keyboardType="decimal-pad"
-                    style={{ width: 140, height: 48, textAlign: 'center', fontSize: 18 }}
-                    left={<TextInput.Affix text="$" />}
-                    right={<TextInput.Affix text="/hr" />}
-                  />
-                </View>
-                <Slider
-                  value={editHourlyRate}
-                  onValueChange={(value) => {
-                    const newHourlyRate = Math.round(value / 100) * 100;
-                    setEditHourlyRate(newHourlyRate);
-                    setEditingTask({
-                      ...editingTask,
-                      base_pay_cents: Math.round((newHourlyRate / 60) * editingTask.effort_minutes)
-                    });
-                  }}
-                  minimumValue={100}
-                  maximumValue={10000}
-                  step={100}
-                  minimumTrackTintColor="#9C27B0"
-                  maximumTrackTintColor="#E0E0E0"
-                  thumbTintColor="#9C27B0"
-                />
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text variant="bodyMedium" style={{ color: '#666', fontSize: 14 }}>$1/hr</Text>
-                  <Text variant="bodyMedium" style={{ color: '#666', fontSize: 14 }}>$100/hr</Text>
-                </View>
-              </View>
-
               {/* Time Slider */}
               <View style={{ marginBottom: 20 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -656,6 +609,53 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text variant="bodyMedium" style={{ color: '#666', fontSize: 14 }}>2 min</Text>
                   <Text variant="bodyMedium" style={{ color: '#666', fontSize: 14 }}>120 min</Text>
+                </View>
+              </View>
+
+              {/* Hourly Rate */}
+              <View style={{ marginBottom: 20 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <Text variant="titleMedium" style={{ fontWeight: 'bold', fontSize: 20 }}>
+                    Hourly Rate
+                  </Text>
+                  <TextInput
+                    value={(editHourlyRate / 100).toFixed(2)}
+                    onChangeText={(text) => {
+                      const dollars = parseFloat(text) || 0;
+                      const cents = Math.round(dollars * 100);
+                      const newHourlyRate = Math.max(100, Math.min(10000, cents));
+                      setEditHourlyRate(newHourlyRate);
+                      setEditingTask({
+                        ...editingTask,
+                        base_pay_cents: Math.round((newHourlyRate / 60) * editingTask.effort_minutes)
+                      });
+                    }}
+                    keyboardType="decimal-pad"
+                    style={{ width: 120, height: 48, textAlign: 'center', fontSize: 16 }}
+                    left={<TextInput.Affix text="$" />}
+                    right={<TextInput.Affix text="/hr" textStyle={{ fontSize: 12 }} />}
+                  />
+                </View>
+                <Slider
+                  value={editHourlyRate}
+                  onValueChange={(value) => {
+                    const newHourlyRate = Math.round(value / 100) * 100;
+                    setEditHourlyRate(newHourlyRate);
+                    setEditingTask({
+                      ...editingTask,
+                      base_pay_cents: Math.round((newHourlyRate / 60) * editingTask.effort_minutes)
+                    });
+                  }}
+                  minimumValue={100}
+                  maximumValue={10000}
+                  step={100}
+                  minimumTrackTintColor="#9C27B0"
+                  maximumTrackTintColor="#E0E0E0"
+                  thumbTintColor="#9C27B0"
+                />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text variant="bodyMedium" style={{ color: '#666', fontSize: 14 }}>$1/hr</Text>
+                  <Text variant="bodyMedium" style={{ color: '#666', fontSize: 14 }}>$100/hr</Text>
                 </View>
               </View>
 
