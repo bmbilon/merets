@@ -35,7 +35,7 @@ export default function MentsMarketplace({
   onMentPress,
   onRefresh: onRefreshProp
 }: MentsMarketplaceProps) {
-  const [activeSection, setActiveSection] = useState<'recommended' | 'quick' | 'available' | 'active'>('recommended');
+  const [activeSection, setActiveSection] = useState<'recommended' | 'quick' | 'available' | 'active'>('available');
   const [refreshing, setRefreshing] = useState(false);
 
   // Use external ments if provided, otherwise use mock data
@@ -196,12 +196,12 @@ export default function MentsMarketplace({
           contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
         >
           <Chip
-            selected={activeSection === 'recommended'}
-            onPress={() => setActiveSection('recommended')}
-            style={{ backgroundColor: activeSection === 'recommended' ? '#6200ee' : '#f5f5f5' }}
-            textStyle={{ color: activeSection === 'recommended' ? '#fff' : '#666' }}
+            selected={activeSection === 'available'}
+            onPress={() => setActiveSection('available')}
+            style={{ backgroundColor: activeSection === 'available' ? '#6200ee' : '#f5f5f5' }}
+            textStyle={{ color: activeSection === 'available' ? '#fff' : '#666' }}
           >
-            ⭐ Recommended
+            📋 Available
           </Chip>
           <Chip
             selected={activeSection === 'quick'}
@@ -212,12 +212,12 @@ export default function MentsMarketplace({
             ⚡ Quick
           </Chip>
           <Chip
-            selected={activeSection === 'available'}
-            onPress={() => setActiveSection('available')}
-            style={{ backgroundColor: activeSection === 'available' ? '#6200ee' : '#f5f5f5' }}
-            textStyle={{ color: activeSection === 'available' ? '#fff' : '#666' }}
+            selected={activeSection === 'recommended'}
+            onPress={() => setActiveSection('recommended')}
+            style={{ backgroundColor: activeSection === 'recommended' ? '#6200ee' : '#f5f5f5' }}
+            textStyle={{ color: activeSection === 'recommended' ? '#fff' : '#666' }}
           >
-            📋 Available
+            ⭐ Recommended
           </Chip>
           <Chip
             selected={activeSection === 'active'}
