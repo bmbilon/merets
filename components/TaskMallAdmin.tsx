@@ -99,7 +99,25 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
 
   useEffect(() => {
     loadTasks()
+    loadCustomCategories()
   }, [])
+
+  const loadCustomCategories = async () => {
+    try {
+      // Get all unique categories from existing tasks
+      const { data, error } = await SupabaseService.getSupabaseClient()
+        .from('task_templates')
+        .select('skill_category')
+      
+      if (!error && data) {
+        const uniqueCategories = [...new Set(data.map(t => t.skill_category))]
+        const customCats = uniqueCategories.filter(cat => !baseCategories.includes(cat))
+        setCustomCategories(customCats)
+      }
+    } catch (error) {
+      console.error('Error loading custom categories:', error)
+    }
+  }
 
   const loadTasks = async () => {
     try {
