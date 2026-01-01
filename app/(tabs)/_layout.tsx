@@ -48,88 +48,62 @@ export default function TabLayout() {
         },
       }}>
       
-      {/* EARNER TABS */}
-      {userRole === 'earner' && (
-        <>
-          {/* Browse Marketplace */}
-          <Tabs.Screen
-            name="index"
-            options={{
-              title: 'Browse',
-              tabBarIcon: ({ color }) => <IconSymbol size={24} name="square.grid.2x2" color={color} />,
-            }}
-          />
+      {/* Browse/Dashboard - Shows for all, different content per role */}
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: userRole === 'earner' ? 'Browse' : 'Dashboard',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol 
+              size={24} 
+              name={userRole === 'earner' ? 'square.grid.2x2' : 'house.fill'} 
+              color={color} 
+            />
+          ),
+        }}
+      />
 
-          {/* My Ments (Active/Completed) */}
-          <Tabs.Screen
-            name="aveya-dashboard"
-            options={{
-              title: 'My Ments',
-              tabBarIcon: ({ color }) => <IconSymbol size={24} name="list.clipboard" color={color} />,
-            }}
-          />
+      {/* My Ments - Earner only */}
+      <Tabs.Screen
+        name="aveya-dashboard"
+        options={{
+          title: 'My Ments',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="list.clipboard" color={color} />,
+          href: userRole === 'earner' ? undefined : null,
+        }}
+      />
 
-          {/* Stats */}
-          <Tabs.Screen
-            name="skills"
-            options={{
-              title: 'Stats',
-              tabBarIcon: ({ color }) => <IconSymbol size={24} name="chart.bar.fill" color={color} />,
-            }}
-          />
-        </>
-      )}
+      {/* Tasks - Parent shows this, Earner sees My Ments instead */}
+      <Tabs.Screen
+        name="parent"
+        options={{
+          title: 'Tasks',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="checkmark.seal.fill" color={color} />,
+          href: userRole === 'parent' || userRole === 'issuer' ? undefined : null,
+        }}
+      />
 
-      {/* PARENT/ISSUER TABS */}
-      {(userRole === 'parent' || userRole === 'issuer') && (
-        <>
-          {/* Dashboard */}
-          <Tabs.Screen
-            name="index"
-            options={{
-              title: 'Dashboard',
-              tabBarIcon: ({ color }) => <IconSymbol size={24} name="house.fill" color={color} />,
-            }}
-          />
+      {/* Stats - Earner only */}
+      <Tabs.Screen
+        name="skills"
+        options={{
+          title: 'Stats',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="chart.bar.fill" color={color} />,
+          href: userRole === 'earner' ? undefined : null,
+        }}
+      />
 
-          {/* Tasks (Approvals + Task Manager) */}
-          <Tabs.Screen
-            name="parent"
-            options={{
-              title: 'Tasks',
-              tabBarIcon: ({ color }) => <IconSymbol size={24} name="checkmark.seal.fill" color={color} />,
-            }}
-          />
+      {/* Payouts - Parent only */}
+      <Tabs.Screen
+        name="family-chat"
+        options={{
+          title: 'Payouts',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="banknote" color={color} />,
+          href: userRole === 'parent' || userRole === 'issuer' ? undefined : null,
+        }}
+      />
 
-          {/* Payouts */}
-          <Tabs.Screen
-            name="family-chat"
-            options={{
-              title: 'Payouts',
-              tabBarIcon: ({ color }) => <IconSymbol size={24} name="banknote" color={color} />,
-            }}
-          />
-        </>
-      )}
-
-      {/* Hide unused tabs */}
-      {userRole === 'earner' && (
-        <>
-          <Tabs.Screen name="parent" options={{ href: null }} />
-          <Tabs.Screen name="family-chat" options={{ href: null }} />
-          <Tabs.Screen name="issuer-dashboard" options={{ href: null }} />
-        </>
-      )}
-      
-      {(userRole === 'parent' || userRole === 'issuer') && (
-        <>
-          <Tabs.Screen name="aveya-dashboard" options={{ href: null }} />
-          <Tabs.Screen name="skills" options={{ href: null }} />
-          <Tabs.Screen name="issuer-dashboard" options={{ href: null }} />
-        </>
-      )}
-
-      {/* All Roles: Inbox */}
+      {/* Inbox - Shows for all */}
       <Tabs.Screen
         name="inbox"
         options={{
@@ -141,6 +115,12 @@ export default function TabLayout() {
       {/* Hidden screens */}
       <Tabs.Screen
         name="onyx-dashboard"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="issuer-dashboard"
         options={{
           href: null,
         }}
