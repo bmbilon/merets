@@ -460,28 +460,27 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
       {/* Header */}
-      <View style={{ 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
+      <View style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
         padding: 16,
         backgroundColor: 'white',
         elevation: 2
       }}>
-        <Text variant="headlineSmall" style={{ fontWeight: 'bold' }}>
-          📋 Available Ments Admin
+        <Text variant="titleLarge" style={{ fontWeight: 'bold', flex: 1, marginRight: 8 }}>
+          📋 Task Manager
         </Text>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <Button
-            mode="contained"
-            icon="plus"
-            onPress={() => setShowCreateModal(true)}
-            style={{ backgroundColor: '#4CAF50' }}
-          >
-            New Task
-          </Button>
-          <IconButton icon="close" onPress={onClose} />
-        </View>
+        <Button
+          mode="contained"
+          icon="plus"
+          onPress={() => setShowCreateModal(true)}
+          style={{ backgroundColor: '#4CAF50' }}
+          compact
+        >
+          New
+        </Button>
+        <IconButton icon="close" onPress={onClose} />
       </View>
 
       {/* Search and Filters */}
