@@ -3,6 +3,8 @@ import { View, ScrollView } from 'react-native';
 import { Surface, Text, Avatar, Chip } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SupabaseService } from '../lib/supabase-service';
+import LoadingState from './LoadingState';
+import EmptyState from './EmptyState';
 
 interface LeaderboardEntry {
   id: string;
@@ -72,17 +74,7 @@ export default function Leaderboard({ currentUserId, compact = false }: Leaderbo
   };
 
   if (loading) {
-    return (
-      <Surface style={{ 
-        borderRadius: 16, 
-        padding: 24, 
-        backgroundColor: '#fff',
-        elevation: 2,
-        alignItems: 'center'
-      }}>
-        <Text variant="bodyMedium" style={{ color: '#666' }}>Loading leaderboard...</Text>
-      </Surface>
-    );
+    return <LoadingState message="Loading leaderboard..." icon="chart.bar.fill" compact={compact} />;
   }
 
   if (compact) {
@@ -308,21 +300,11 @@ export default function Leaderboard({ currentUserId, compact = false }: Leaderbo
         })}
 
         {leaders.length === 0 && (
-          <Surface style={{ 
-            borderRadius: 16, 
-            padding: 32, 
-            backgroundColor: '#fff',
-            elevation: 2,
-            alignItems: 'center'
-          }}>
-            <IconSymbol size={64} name="chart.bar" color="#ccc" style={{ marginBottom: 16 }} />
-            <Text variant="headlineSmall" style={{ color: '#999', textAlign: 'center', marginBottom: 8 }}>
-              No Data Yet
-            </Text>
-            <Text variant="bodyMedium" style={{ color: '#999', textAlign: 'center' }}>
-              Complete some tasks to appear on the leaderboard!
-            </Text>
-          </Surface>
+          <EmptyState
+            icon="chart.bar"
+            title="No Data Yet"
+            message="Complete some tasks to appear on the leaderboard!"
+          />
         )}
       </ScrollView>
     </View>

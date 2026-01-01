@@ -6,6 +6,8 @@ import SubmitWorkModal from './SubmitWorkModal';
 import AnimatedProgressBar from './AnimatedProgressBar';
 import StreakDisplay from './StreakDisplay';
 import Leaderboard from './Leaderboard';
+import LoadingState from './LoadingState';
+import EmptyState from './EmptyState';
 
 interface EarnerDashboardProps {
   userName: string;
@@ -239,21 +241,12 @@ export default function EarnerDashboard({
               </View>
 
               {activeMents === 0 ? (
-                <Surface style={{ 
-                  borderRadius: 16,
-                  padding: 24,
-                  backgroundColor: '#fff',
-                  elevation: 2,
-                  alignItems: 'center'
-                }}>
-                  <IconSymbol size={48} name="tray" color="#ccc" style={{ marginBottom: 12 }} />
-                  <Text variant="bodyLarge" style={{ color: '#999', textAlign: 'center' }}>
-                    No active ments
-                  </Text>
-                  <Text variant="bodySmall" style={{ color: '#999', textAlign: 'center', marginTop: 4 }}>
-                    Browse the marketplace to get started!
-                  </Text>
-                </Surface>
+                <EmptyState
+                  icon="tray"
+                  title="No Active Ments"
+                  message="Browse the marketplace to get started!"
+                  compact={true}
+                />
               ) : (
                 <Surface style={{ 
                   borderRadius: 16,
@@ -279,33 +272,13 @@ export default function EarnerDashboard({
               Active Ments ({activeCommitments.length})
             </Text>
             {loading ? (
-              <Surface style={{ 
-                borderRadius: 16,
-                padding: 32,
-                backgroundColor: '#fff',
-                elevation: 2,
-                alignItems: 'center'
-              }}>
-                <Text variant="bodyMedium" style={{ color: '#666' }}>
-                  Loading...
-                </Text>
-              </Surface>
+              <LoadingState message="Loading active ments..." icon="list.bullet.rectangle" />
             ) : activeCommitments.length === 0 ? (
-              <Surface style={{ 
-                borderRadius: 16,
-                padding: 32,
-                backgroundColor: '#fff',
-                elevation: 2,
-                alignItems: 'center'
-              }}>
-                <IconSymbol size={64} name="list.bullet.rectangle" color="#ccc" style={{ marginBottom: 16 }} />
-                <Text variant="headlineSmall" style={{ color: '#999', textAlign: 'center', marginBottom: 8 }}>
-                  No Active Ments
-                </Text>
-                <Text variant="bodyMedium" style={{ color: '#999', textAlign: 'center' }}>
-                  Commit to a ment from the marketplace to get started earning!
-                </Text>
-              </Surface>
+              <EmptyState
+                icon="list.bullet.rectangle"
+                title="No Active Ments"
+                message="Commit to a ment from the marketplace to get started earning!"
+              />
             ) : (
               <View style={{ gap: 12 }}>
                 {activeCommitments.map((commitment) => (

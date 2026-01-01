@@ -3,6 +3,8 @@ import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { Surface, Text, Button, Chip, Avatar, Divider, IconButton } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import ReceiptCard from './ReceiptCard';
+import LoadingState from './LoadingState';
+import EmptyState from './EmptyState';
 
 interface ParentApprovalQueueProps {
   pendingSubmissions: any[];
@@ -139,33 +141,13 @@ export default function ParentApprovalQueue({
         contentContainerStyle={{ padding: 20 }}
       >
         {loading ? (
-          <Surface style={{ 
-            borderRadius: 16,
-            padding: 32,
-            backgroundColor: '#fff',
-            elevation: 2,
-            alignItems: 'center',
-            marginTop: 40
-          }}>
-            <Text variant="bodyMedium" style={{ color: '#666' }}>Loading submissions...</Text>
-          </Surface>
+          <LoadingState message="Loading submissions..." icon="checkmark.circle" />
         ) : pendingSubmissions.length === 0 ? (
-          <Surface style={{ 
-            borderRadius: 16,
-            padding: 32,
-            backgroundColor: '#fff',
-            elevation: 2,
-            alignItems: 'center',
-            marginTop: 40
-          }}>
-            <IconSymbol size={64} name="checkmark.circle" color="#ccc" style={{ marginBottom: 16 }} />
-            <Text variant="headlineSmall" style={{ color: '#999', textAlign: 'center', marginBottom: 8 }}>
-              All Caught Up!
-            </Text>
-            <Text variant="bodyMedium" style={{ color: '#999', textAlign: 'center' }}>
-              No pending approvals at the moment.
-            </Text>
-          </Surface>
+          <EmptyState
+            icon="checkmark.circle"
+            title="All Caught Up!"
+            message="No pending submissions to review"
+          />
         ) : (
           pendingSubmissions.map(renderSubmissionCard)
         )}
