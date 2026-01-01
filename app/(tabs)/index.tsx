@@ -9,6 +9,7 @@ import {
 import MentsMarketplace from "@/components/MentsMarketplace";
 import MentDetailModal from "@/components/MentDetailModal";
 import { supabase } from "@/lib/supabase";
+import { SupabaseService } from "@/lib/supabase-service";
 
 export default function MainApp() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -118,10 +119,40 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
     }
   };
 
-  const handleCommit = (mentId: string) => {
-    console.log('Committed to ment:', mentId);
-    setShowDetail(false);
-    // TODO: Create commitment in Supabase
+  const handleCommit = async (mentId: string) => {
+    try {
+      // Get user profile to get user ID
+      const userProfile = await SupabaseService.getUserByName(userName);
+      if (!userProfile) {
+        console.error('User profile not found');
+        return;
+      }
+
+      // Find the selected task
+      const selectedTask = ments.find(m => m.id === mentId);
+      if (!selectedTask) {
+        console.error('Task not found');
+        return;
+      }
+
+      // Create commitment in database
+      const commitment = await SupabaseService.createCommitment({
+        user_id: userProfile.id,
+        task_template_id: mentId,
+        skill_category: selectedTask.category,
+        effort_minutes: parseInt(selectedTask.timeEstimate) || 30,
+        pay_cents: Math.round(selectedTask.credits * 100),
+        status: 'in_progress'
+      });
+
+      console.log('Commitment created:', commitment.id);
+      setShowDetail(false);
+      
+      // Refresh the ments list
+      await fetchMents();
+    } catch (error) {
+      console.error('Error creating commitment:', error);
+    }
   };
 
   if (loading) {
