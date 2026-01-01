@@ -469,7 +469,7 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
         elevation: 2
       }}>
         <Text variant="headlineSmall" style={{ fontWeight: 'bold' }}>
-          🛒 Task Mall Admin
+          📋 Available Ments Admin
         </Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <Button

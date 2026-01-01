@@ -1,17 +1,17 @@
 {
   "expo": {
     "name": "Merets",
-    "slug": "commitments-stickers",
+    "slug": "merets",
     "version": "1.5.001",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "commitmentsstickers",
+    "scheme": "merets",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.execom.commitmentsstickers",
-      "buildNumber": "2",
+      "bundleIdentifier": "com.execom.merets",
+      "buildNumber": "8",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -25,7 +25,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.execom.commitmentsstickers"
+      "package": "com.execom.merets"
     },
     "web": {
       "output": "static",
@@ -53,8 +53,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "65750a9a-f170-4e96-a1d7-5d02fe182511"
+        "projectId": "f79701b4-2cbc-4784-907c-db8f9e0e71b9"
       }
-    }
+    },
+    "owner": "execom-inc"
   }
 }

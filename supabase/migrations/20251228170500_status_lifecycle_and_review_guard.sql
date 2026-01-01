@@ -1,6 +1,11 @@
 -- MERETS v1: Lifecycle statuses, review guard, and stats alignment
 
 -- 1) Commitments: extend status and backfill
+
+-- Drop views that depend on commitments.status
+DROP VIEW IF EXISTS v_user_rep_breakdown CASCADE;
+DROP VIEW IF EXISTS v_earner_rep_breakdown CASCADE;
+
 DO $$
 BEGIN
   -- Drop old check if present
@@ -17,13 +22,7 @@ ALTER TABLE public.commitments
   ALTER COLUMN status TYPE text,
   ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
 
-ALTER TABLE public.commitments
-  ADD CONSTRAINT commitments_status_check
-  CHECK (status IN (
-    'draft','pending_approval','accepted','in_progress','submitted','ready_for_review','completed','redo_requested','rejected'
-  ));
-
--- Backfill legacy to new lifecycle
+-- Backfill legacy to new lifecycle BEFORE adding constraint
 -- pending -> pending_approval
 UPDATE public.commitments SET status='pending_approval' WHERE status='pending';
 
@@ -35,8 +34,25 @@ WHERE status='approved' AND completed_at IS NULL;
 UPDATE public.commitments SET status='ready_for_review'
 WHERE status='approved' AND completed_at IS NOT NULL;
 
+-- failed -> rejected
+UPDATE public.commitments SET status='rejected' WHERE status='failed';
+
+-- canceled -> draft (best guess)
+UPDATE public.commitments SET status='draft' WHERE status='canceled';
+
+-- Any other unmapped statuses -> pending_approval (safe default)
+UPDATE public.commitments SET status='pending_approval'
+WHERE status NOT IN ('draft','pending_approval','accepted','in_progress','submitted','ready_for_review','completed','redo_requested','rejected');
+
 -- completed -> completed (no change)
 -- rejected -> rejected (no change)
+
+-- NOW add the constraint after backfill
+ALTER TABLE public.commitments
+  ADD CONSTRAINT commitments_status_check
+  CHECK (status IN (
+    'draft','pending_approval','accepted','in_progress','submitted','ready_for_review','completed','redo_requested','rejected'
+  ));
 
 -- updated_at trigger
 CREATE OR REPLACE FUNCTION public._set_updated_at()

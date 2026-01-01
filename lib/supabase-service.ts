@@ -173,7 +173,7 @@ export class SupabaseService {
     const { data, error } = await supabase
       .from('commitments')
       .select('*')
-      .in('status', ['pending', 'approved'])
+      .in('status', ['pending_approval', 'accepted', 'in_progress'])
       .order('created_at', { ascending: false })
     
     if (error) throw error
@@ -264,7 +264,7 @@ export class SupabaseService {
 
   static async updateCommitmentStatus(
     commitmentId: string, 
-    status: 'approved' | 'completed' | 'rejected', 
+    status: 'accepted' | 'completed' | 'rejected', 
     qualityRating?: 'miss' | 'pass' | 'perfect'
   ): Promise<void> {
     const updateData: any = { status }

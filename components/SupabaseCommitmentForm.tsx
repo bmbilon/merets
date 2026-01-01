@@ -101,7 +101,7 @@ export const SupabaseCommitmentForm: React.FC<Props> = ({
         skill_category: selectedSkill,
         effort_minutes: parseInt(effortMinutes),
         pay_cents: calculatedPay,
-        status: 'pending'
+        status: 'pending_approval'
       })
 
       Alert.alert('Success', 'Commitment created! Parents will be notified.')

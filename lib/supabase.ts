@@ -55,7 +55,7 @@ export interface Commitment {
   skill_category: string
   effort_minutes: number
   pay_cents: number
-  status: 'pending' | 'approved' | 'completed' | 'rejected'
+  status: 'draft' | 'pending_approval' | 'accepted' | 'in_progress' | 'submitted' | 'ready_for_review' | 'completed' | 'redo_requested' | 'rejected'
   quality_rating?: 'miss' | 'pass' | 'perfect'
   completed_at?: string
   created_at: string

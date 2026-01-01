@@ -29,29 +29,30 @@ export default function IssuerDashboard() {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    let subscription: ReturnType<typeof supabase.auth.onAuthStateChange> | null = null;
-
     const init = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUserId(data.user?.id ?? null);
-      if (data.user?.id) await loadDashboardData(data.user.id);
-
-      subscription = supabase.auth.onAuthStateChange((_event, session) => {
-        const id = session?.user?.id ?? null;
-        setUserId(id);
-        if (id) loadDashboardData(id);
-      });
+      // For development: Try to get Brett's user ID from database
+      try {
+        const { data: brettProfile, error } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('name', 'Brett')
+          .single();
+        
+        if (error || !brettProfile?.id) {
+          console.log('Brett profile not found, issuer dashboard unavailable');
+          setLoading(false);
+          return;
+        }
+        
+        setUserId(brettProfile.id);
+        await loadDashboardData(brettProfile.id);
+      } catch (error) {
+        console.error('Error loading issuer profile:', error);
+        setLoading(false);
+      }
     };
 
     init();
-    return () => {
-      // Clean up listener
-      // @ts-ignore - different return shape depending on SDK version
-      if (subscription && typeof subscription.subscription?.unsubscribe === 'function') {
-        // @ts-ignore
-        subscription.subscription.unsubscribe();
-      }
-    };
   }, []);
 
   const loadDashboardData = async (uid?: string) => {

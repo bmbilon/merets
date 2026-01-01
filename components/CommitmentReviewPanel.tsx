@@ -30,7 +30,7 @@ interface Props {
   filterEarnerId?: string;
 }
 
-export const CommitmentReviewPanel: React.FC<Props> = ({ reviewerId, onReviewComplete, filterEarnerId }) => {
+export default function CommitmentReviewPanel({ reviewerId, onReviewComplete, filterEarnerId }: Props) {
   const [pendingApprovals, setPendingApprovals] = useState<Commitment[]>([]);
   const [completedAwaitingReview, setCompletedAwaitingReview] = useState<Commitment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,9 +100,7 @@ const [reviewNote, setReviewNote] = useState('');
 
   const handleApproveCommitment = async (commitmentId: string) => {
     try {
-await IssuerService.approvePreWork(commitmentId, reviewerId);
-
-      if (error) throw error;
+      await IssuerService.approvePreWork(commitmentId, reviewerId);
 
       Alert.alert('Success', 'Commitment approved!');
       loadCommitments();
@@ -124,9 +122,7 @@ await IssuerService.approvePreWork(commitmentId, reviewerId);
           style: 'destructive',
           onPress: async () => {
             try {
-await IssuerService.rejectPreWork(commitmentId, reviewerId, 'Rejected by issuer');
-
-              if (error) throw error;
+              await IssuerService.rejectPreWork(commitmentId, reviewerId, 'Rejected by issuer');
 
               Alert.alert('Rejected', 'Commitment has been rejected');
               loadCommitments();
@@ -150,7 +146,7 @@ await IssuerService.rejectPreWork(commitmentId, reviewerId, 'Rejected by issuer'
       // 2. Creates earning_event if pay > 0
       // 3. Creates rep_event with calculated composite score
       // 4. Updates user_profiles cached values
-await IssuerService.submitQualityReview(
+      await IssuerService.submitQualityReview(
         selectedCommitment.id,
         reviewerId,
         selectedStars,
@@ -165,7 +161,7 @@ await IssuerService.submitQualityReview(
 
       setSelectedCommitment(null);
       setSelectedStars(4);
-setReviewNote('');
+      setReviewNote('');
       setRequestRedo(false);
       loadCommitments();
       onReviewComplete?.();
@@ -422,4 +418,4 @@ setReviewNote('');
       </Portal>
     </ScrollView>
   );
-};
+}

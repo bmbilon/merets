@@ -168,6 +168,8 @@ export default function ParentScreen() {
   const [showAdminPortal, setShowAdminPortal] = useState(false);
   const [showTaskMallAdmin, setShowTaskMallAdmin] = useState(false);
   const [parentProfile, setParentProfile] = useState<any>(null);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [childCommitments, setChildCommitments] = useState<any[]>([]);
 
   useEffect(() => {
     // Check if already authenticated
@@ -187,6 +189,26 @@ export default function ParentScreen() {
       setParentProfile(profile);
     } catch (error) {
       console.error('Error loading parent profile:', error);
+    }
+  };
+
+  const loadChildCommitments = async (childName: string) => {
+    try {
+      const childProfile = await SupabaseService.getUserByName(childName);
+      if (childProfile) {
+        // Get all commitments for this child from database
+        const pending = await SupabaseService.getUserCommitments(childProfile.id, 'pending_approval');
+        const accepted = await SupabaseService.getUserCommitments(childProfile.id, 'accepted');
+        const inProgress = await SupabaseService.getUserCommitments(childProfile.id, 'in_progress');
+        const readyForReview = await SupabaseService.getUserCommitments(childProfile.id, 'ready_for_review');
+        const completed = await SupabaseService.getUserCommitments(childProfile.id, 'completed');
+        
+        const allCommitments = [...pending, ...accepted, ...inProgress, ...readyForReview, ...completed];
+        setChildCommitments(allCommitments);
+      }
+    } catch (error) {
+      console.error('Error loading child commitments:', error);
+      Alert.alert('Error', 'Failed to load commitments');
     }
   };
 
@@ -355,6 +377,103 @@ export default function ParentScreen() {
     );
   }
 
+  if (selectedChildId) {
+    const child = store.kids.find(k => k.id === selectedChildId);
+    return (
+      <PaperProvider>
+        <ScrollView style={{ flex: 1, padding: 16, paddingTop: 36 }}>
+          <Card>
+            <Card.Content>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <Text variant="headlineSmall">{child?.name}'s Commitments</Text>
+                <IconButton 
+                  icon="close" 
+                  onPress={() => {
+                    setSelectedChildId(null);
+                    setChildCommitments([]);
+                  }} 
+                />
+              </View>
+              <Text variant="bodyMedium" style={{ marginBottom: 16, color: '#666' }}>
+                All commitments including those from other issuers that need approval
+              </Text>
+              {childCommitments.length === 0 ? (
+                <Text style={{ textAlign: 'center', marginTop: 20, color: '#999' }}>No commitments found</Text>
+              ) : (
+                childCommitments.map((commitment) => (
+                  <Card key={commitment.id} style={{ marginBottom: 12 }}>
+                    <Card.Content>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <Text variant="titleMedium">{commitment.custom_title || commitment.title || 'Task'}</Text>
+                        <Chip 
+                          style={{ 
+                            backgroundColor: 
+                              commitment.status === 'pending_approval' ? '#FFF3CD' :
+                              commitment.status === 'completed' ? '#D4EDDA' :
+                              commitment.status === 'ready_for_review' ? '#CCE5FF' :
+                              '#E2E3E5'
+                          }}
+                        >
+                          {commitment.status}
+                        </Chip>
+                      </View>
+                      {commitment.custom_description && (
+                        <Text variant="bodySmall" style={{ marginBottom: 8 }}>{commitment.custom_description}</Text>
+                      )}
+                      <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                        <Chip icon="clock-outline">{commitment.effort_minutes} min</Chip>
+                        {commitment.pay_cents > 0 && (
+                          <Chip icon="currency-usd">${(commitment.pay_cents / 100).toFixed(2)}</Chip>
+                        )}
+                        {commitment.issuer_id && commitment.issuer_id !== parentProfile?.id && (
+                          <Chip icon="account-multiple" style={{ backgroundColor: '#FFE0B2' }}>
+                            External Issuer
+                          </Chip>
+                        )}
+                      </View>
+                      {commitment.status === 'pending_approval' && (
+                        <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
+                          <Button 
+                            mode="contained" 
+                            onPress={async () => {
+                              try {
+                                await SupabaseService.updateCommitmentStatus(commitment.id, 'accepted');
+                                Alert.alert('Approved', 'Commitment has been approved');
+                                loadChildCommitments(child?.name || '');
+                              } catch (error) {
+                                Alert.alert('Error', 'Failed to approve commitment');
+                              }
+                            }}
+                          >
+                            ✅ Approve
+                          </Button>
+                          <Button 
+                            mode="outlined" 
+                            onPress={async () => {
+                              try {
+                                await SupabaseService.updateCommitmentStatus(commitment.id, 'rejected');
+                                Alert.alert('Rejected', 'Commitment has been rejected');
+                                loadChildCommitments(child?.name || '');
+                              } catch (error) {
+                                Alert.alert('Error', 'Failed to reject commitment');
+                              }
+                            }}
+                          >
+                            ❌ Reject
+                          </Button>
+                        </View>
+                      )}
+                    </Card.Content>
+                  </Card>
+                ))
+              )}
+            </Card.Content>
+          </Card>
+        </ScrollView>
+      </PaperProvider>
+    );
+  }
+
   return (
     <PaperProvider>
       <ScrollView style={{ flex: 1, padding: 16, paddingTop: 36 }}>
@@ -415,25 +534,35 @@ export default function ParentScreen() {
 
             <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
               {store.kids.map((k) => (
-                <View key={k.id} style={{ alignItems: "center" }}>
-                  <Text variant="titleMedium">{k.name}</Text>
-                  <Text variant="bodyMedium">🏆 {k.meretCount}</Text>
-                  <Text variant="bodySmall">{dollars(k.balanceCents)}</Text>
-                  <Text variant="bodySmall">🔥 {k.streakDays} days</Text>
-                </View>
+                <Card 
+                  key={k.id} 
+                  style={{ flex: 1, marginHorizontal: 4 }}
+                  onPress={() => {
+                    setSelectedChildId(k.id);
+                    loadChildCommitments(k.name);
+                  }}
+                >
+                  <Card.Content style={{ alignItems: "center", padding: 12 }}>
+                    <Text variant="titleMedium">{k.name}</Text>
+                    <Text variant="bodyMedium">🏆 {k.meretCount}</Text>
+                    <Text variant="bodySmall">{dollars(k.balanceCents)}</Text>
+                    <Text variant="bodySmall">🔥 {k.streakDays} days</Text>
+                    <Text variant="bodySmall" style={{ marginTop: 4, color: '#2196F3' }}>Tap to view ments →</Text>
+                  </Card.Content>
+                </Card>
               ))}
             </View>
           </Card.Content>
         </Card>
 
-        {/* Task Mall Management */}
+        {/* Available Ments Management */}
         <Card style={{ marginTop: 12, backgroundColor: '#E8F5E8' }}>
           <Card.Content style={{ gap: 12 }}>
             <Text variant="titleLarge" style={{ color: '#2E7D32', fontWeight: 'bold' }}>
-              🛒 Task Mall Management
+              📋 Available Ments
             </Text>
             <Text variant="bodyMedium" style={{ color: '#666' }}>
-              Manage all household tasks, pricing, and priorities
+              Manage all household ments, pricing, and priorities
             </Text>
             <View style={{ flexDirection: "row", gap: 12 }}>
               <Button

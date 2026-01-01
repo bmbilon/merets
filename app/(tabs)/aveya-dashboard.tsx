@@ -99,6 +99,95 @@ function uid() {
 
 async function loadStore(): Promise<Store> {
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
+  
+  // Try to sync with Supabase on first load
+  if (!raw) {
+    try {
+      const aveyaProfile = await SupabaseService.getUserByName('Aveya');
+      const onyxProfile = await SupabaseService.getUserByName('Onyx');
+      
+      if (aveyaProfile && onyxProfile) {
+        // Get completed commitments from Supabase
+        const aveyaCompleted = await SupabaseService.getUserCommitments(aveyaProfile.id, 'completed');
+        const onyxCompleted = await SupabaseService.getUserCommitments(onyxProfile.id, 'completed');
+        
+        // Convert Supabase commitments to AsyncStorage format
+        const allCompleted = [
+          ...aveyaCompleted.map(c => ({
+            id: c.id,
+            kidId: "kid1",
+            title: c.custom_title || 'Task',
+            details: c.custom_description || '',
+            date: c.completed_at ? c.completed_at.split('T')[0] : todayStr(0),
+            effortMin: c.effort_minutes,
+            status: "COMPLETED" as Status,
+            createdAt: new Date(c.created_at).getTime(),
+            decidedAt: c.completed_at ? new Date(c.completed_at).getTime() : Date.now()
+          })),
+          ...onyxCompleted.map(c => ({
+            id: c.id,
+            kidId: "kid2",
+            title: c.custom_title || 'Task',
+            details: c.custom_description || '',
+            date: c.completed_at ? c.completed_at.split('T')[0] : todayStr(0),
+            effortMin: c.effort_minutes,
+            status: "COMPLETED" as Status,
+            createdAt: new Date(c.created_at).getTime(),
+            decidedAt: c.completed_at ? new Date(c.completed_at).getTime() : Date.now()
+          }))
+        ];
+        
+        const seeded: Store = {
+          kids: [
+            { 
+              id: "kid1", 
+              name: "Aveya", 
+              stickerCount: aveyaCompleted.length, 
+              lifetimeStickers: aveyaCompleted.length, 
+              balanceCents: aveyaProfile.total_earnings_cents || 0, 
+              streakDays: 0 
+            },
+            { 
+              id: "kid2", 
+              name: "Onyx", 
+              stickerCount: onyxCompleted.length, 
+              lifetimeStickers: onyxCompleted.length, 
+              balanceCents: onyxProfile.total_earnings_cents || 0, 
+              streakDays: 0 
+            },
+          ],
+          commitments: allCompleted,
+          taskLibrary: [
+            // Micro-tasks (2-5 min) - High frequency, instant satisfaction
+            { title: "Take out kitchen trash", details: "Empty and replace trash bag", effortMin: 3, uses: 1 },
+            { title: "Empty bathroom trash cans", details: "All bathroom wastebaskets", effortMin: 5, uses: 1 },
+            { title: "Stock bathroom supplies", details: "TP, hand towels, soap refills", effortMin: 4, uses: 1 },
+            { title: "Wipe down kitchen counters", details: "Clean and sanitize all surfaces", effortMin: 5, uses: 1 },
+            { title: "Load dishwasher", details: "Fill and start if full", effortMin: 4, uses: 1 },
+            { title: "Spot-clean mirrors", details: "Bathroom and bedroom mirrors", effortMin: 3, uses: 1 },
+            { title: "Collect laundry", details: "Gather dirty clothes to hamper", effortMin: 2, uses: 1 },
+            { title: "Tidy living room", details: "Put things back where they belong", effortMin: 5, uses: 1 },
+            { title: "Water houseplants", details: "Check and water as needed", effortMin: 3, uses: 1 },
+            { title: "Feed pets", details: "Fill food and water bowls", effortMin: 2, uses: 1 },
+            
+            // Standard tasks (15-45 min)
+            { title: "Study for upcoming test", details: "Focus session with no distractions", effortMin: 45, uses: 1 },
+            { title: "Organize bedroom", details: "Clean, organize, and make bed", effortMin: 30, uses: 1 },
+            { title: "Help with dinner prep", details: "Assist with meal preparation and cleanup", effortMin: 25, uses: 1 },
+            { title: "Practice instrument", details: "Focused practice session", effortMin: 30, uses: 1 },
+            { title: "Complete homework early", details: "Finish all assignments before dinner", effortMin: 60, uses: 1 },
+          ],
+          lastBonusPaid: {},
+        };
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
+        return seeded;
+      }
+    } catch (error) {
+      console.error('Error syncing with Supabase:', error);
+    }
+  }
+  
+  // Fallback to empty state if sync failed or raw data exists
   if (raw) return JSON.parse(raw);
 
   const seeded: Store = {
@@ -108,7 +197,6 @@ async function loadStore(): Promise<Store> {
     ],
     commitments: [],
     taskLibrary: [
-      // Micro-tasks (2-5 min) - High frequency, instant satisfaction
       { title: "Take out kitchen trash", details: "Empty and replace trash bag", effortMin: 3, uses: 1 },
       { title: "Empty bathroom trash cans", details: "All bathroom wastebaskets", effortMin: 5, uses: 1 },
       { title: "Stock bathroom supplies", details: "TP, hand towels, soap refills", effortMin: 4, uses: 1 },
@@ -119,8 +207,6 @@ async function loadStore(): Promise<Store> {
       { title: "Tidy living room", details: "Put things back where they belong", effortMin: 5, uses: 1 },
       { title: "Water houseplants", details: "Check and water as needed", effortMin: 3, uses: 1 },
       { title: "Feed pets", details: "Fill food and water bowls", effortMin: 2, uses: 1 },
-      
-      // Standard tasks (15-45 min)
       { title: "Study for upcoming test", details: "Focus session with no distractions", effortMin: 45, uses: 1 },
       { title: "Organize bedroom", details: "Clean, organize, and make bed", effortMin: 30, uses: 1 },
       { title: "Help with dinner prep", details: "Assist with meal preparation and cleanup", effortMin: 25, uses: 1 },
@@ -168,6 +254,8 @@ export default function AveyaDashboard({ onSwitchUser }: AveyaDashboardProps) {
   const { store, persist } = useStore();
   const [currentView, setCurrentView] = useState<"dashboard" | "create" | "chat">("dashboard");
   const [realCommitments, setRealCommitments] = useState<any[]>([]);
+  const [aveyaProfile, setAveyaProfile] = useState<any | null>(null);
+  const [isReloading, setIsReloading] = useState(false);
   
   // Create commitment state
   const [title, setTitle] = useState("");
@@ -177,16 +265,28 @@ export default function AveyaDashboard({ onSwitchUser }: AveyaDashboardProps) {
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const [skillMenuVisible, setSkillMenuVisible] = useState(false);
 
+  // Function to load real profile from database
+  const loadRealProfile = async () => {
+    try {
+      const profile = await SupabaseService.getUserByName('Aveya');
+      if (profile) {
+        setAveyaProfile(profile);
+      }
+    } catch (error) {
+      console.error('Error loading Aveya profile:', error);
+    }
+  };
+
   // Function to fetch real commitments from database
   const fetchRealCommitments = async () => {
     try {
-      // Get Aveya's user ID from the database
-      const aveyaProfile = await SupabaseService.getUserByName('Aveya');
+      // Use the loaded profile
       if (aveyaProfile) {
-        // Get all active commitments (pending + approved)
-        const pendingCommitments = await SupabaseService.getUserCommitments(aveyaProfile.id, 'pending');
-        const approvedCommitments = await SupabaseService.getUserCommitments(aveyaProfile.id, 'approved');
-        const allCommitments = [...pendingCommitments, ...approvedCommitments];
+        // Get all active commitments (pending_approval + accepted + in_progress)
+        const pendingCommitments = await SupabaseService.getUserCommitments(aveyaProfile.id, 'pending_approval');
+        const acceptedCommitments = await SupabaseService.getUserCommitments(aveyaProfile.id, 'accepted');
+        const inProgressCommitments = await SupabaseService.getUserCommitments(aveyaProfile.id, 'in_progress');
+        const allCommitments = [...pendingCommitments, ...acceptedCommitments, ...inProgressCommitments];
         setRealCommitments(allCommitments);
       }
     } catch (error) {
@@ -194,12 +294,35 @@ export default function AveyaDashboard({ onSwitchUser }: AveyaDashboardProps) {
     }
   };
 
-  // Load real commitments on mount and when store changes
+  // Load real profile on mount
   useEffect(() => {
-    if (store) {
+    loadRealProfile();
+  }, []);
+
+  // Load real commitments when profile is loaded
+  useEffect(() => {
+    if (aveyaProfile) {
       fetchRealCommitments();
     }
-  }, [store]);
+  }, [aveyaProfile]);
+
+  // Force reload from Supabase
+  const forceReloadFromSupabase = async () => {
+    setIsReloading(true);
+    try {
+      // Clear AsyncStorage
+      await AsyncStorage.removeItem('commitments_stickers_store_v1');
+      // Reload store (this will trigger the Supabase sync in loadStore)
+      const reloadedStore = await loadStore();
+      persist(reloadedStore);
+      Alert.alert('✨ Data Reloaded', 'Successfully synced with database!');
+    } catch (error) {
+      console.error('Error reloading from Supabase:', error);
+      Alert.alert('Error', 'Failed to reload data from database');
+    } finally {
+      setIsReloading(false);
+    }
+  };
 
   // Reward state
   const [showRewards, setShowRewards] = useState(false);
@@ -556,32 +679,47 @@ export default function AveyaDashboard({ onSwitchUser }: AveyaDashboardProps) {
                 My Commitments
               </Button>
             </View>
+            <View style={{ marginTop: 8 }}>
+              <Button
+                mode="outlined"
+                icon="reload"
+                onPress={forceReloadFromSupabase}
+                loading={isReloading}
+                disabled={isReloading}
+                style={{ borderColor: "#E91E63", borderRadius: 25 }}
+                textColor="#E91E63"
+              >
+                {isReloading ? "Syncing..." : "Sync with Database"}
+              </Button>
+            </View>
           </View>
 
           {/* Gamified Task Tiles - Main Feature */}
-          <GameifiedTaskTiles 
-            userProfile={{
-              id: aveya.id,
-              name: aveya.name,
-              role: 'kid',
-              age: 15,
-              total_xp: 0,
-              total_earnings_cents: aveya.balanceCents,
-              created_at: ''
-            }}
+          {aveyaProfile && (
+            <GameifiedTaskTiles 
+              userProfile={{
+                id: aveyaProfile.id,
+                name: aveyaProfile.name,
+                role: aveyaProfile.role,
+                age: aveyaProfile.age || 15,
+                total_xp: aveyaProfile.total_xp || 0,
+                total_earnings_cents: aveyaProfile.total_earnings_cents || aveya.balanceCents,
+                created_at: aveyaProfile.created_at
+              }}
             onTaskCompleted={async () => {
               // Refresh store when task completed
               const refreshedStore = await loadStore();
               await persist(refreshedStore);
             }}
-            onTaskCommitted={async () => {
-              // Refresh store when new commitment made
-              const refreshedStore = await loadStore();
-              await persist(refreshedStore);
-              // Also refresh real commitments
-              await fetchRealCommitments();
-            }}
-          />
+              onTaskCommitted={async () => {
+                // Refresh store when new commitment made
+                const refreshedStore = await loadStore();
+                await persist(refreshedStore);
+                // Also refresh real commitments
+                await fetchRealCommitments();
+              }}
+            />
+          )}
 
           {/* Addictive Game Progress Components */}
           <WeeklyProgressBubbles
@@ -608,23 +746,25 @@ export default function AveyaDashboard({ onSwitchUser }: AveyaDashboardProps) {
           )}
 
           {/* Task Marketplace */}
-          <TaskMarketplace 
-            userProfile={{
-              id: aveya.id,
-              name: aveya.name,
-              role: 'kid',
-              age: 15,
-              total_xp: 0,
-              total_earnings_cents: aveya.balanceCents,
-              created_at: ''
-            }}
-            color="#E91E63"
-            onTaskClaimed={async () => {
-              // Refresh store when task claimed
-              const refreshedStore = await loadStore();
-              await persist(refreshedStore);
-            }}
-          />
+          {aveyaProfile && (
+            <TaskMarketplace 
+              userProfile={{
+                id: aveyaProfile.id,
+                name: aveyaProfile.name,
+                role: aveyaProfile.role,
+                age: aveyaProfile.age || 15,
+                total_xp: aveyaProfile.total_xp || 0,
+                total_earnings_cents: aveyaProfile.total_earnings_cents || aveya.balanceCents,
+                created_at: aveyaProfile.created_at
+              }}
+              color="#E91E63"
+              onTaskClaimed={async () => {
+                // Refresh store when task claimed
+                const refreshedStore = await loadStore();
+                await persist(refreshedStore);
+              }}
+            />
+          )}
 
           {/* Today's Commitments */}
           <Card style={{ marginTop: 16, backgroundColor: "white", elevation: 4 }}>

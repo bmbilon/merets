@@ -199,7 +199,7 @@ export const UserStatsHeader: React.FC<UserStatsHeaderProps> = ({
                 <Text style={{ fontSize: 24 }}>💰</Text>
               </Animated.View>
               <Text style={{
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: 'bold',
                 color: '#2E7D32',
                 marginTop: 4
@@ -226,7 +226,7 @@ export const UserStatsHeader: React.FC<UserStatsHeaderProps> = ({
             }}>
               <Text style={{ fontSize: 18 }}>💵</Text>
               <Text style={{
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: 'bold',
                 color: '#F57C00'
               }}>
@@ -251,7 +251,7 @@ export const UserStatsHeader: React.FC<UserStatsHeaderProps> = ({
             }}>
               <Text style={{ fontSize: 18 }}>💳</Text>
               <Text style={{
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: 'bold',
                 color: color
               }}>
@@ -275,7 +275,7 @@ export const UserStatsHeader: React.FC<UserStatsHeaderProps> = ({
             }}>
               <Text style={{ fontSize: 18 }}>🏦</Text>
               <Text style={{
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: 'bold',
                 color: '#7B1FA2'
               }}>

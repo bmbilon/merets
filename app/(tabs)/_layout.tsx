@@ -51,6 +51,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="checkmark.seal.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="inbox"
+        options={{
+          title: 'Inbox',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="tray.fill" color={color} />,
+        }}
+      />
       
       {/* Hidden tabs - accessible but not shown in navigation */}
       <Tabs.Screen
@@ -67,12 +74,6 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="database-test"
-        options={{
-          href: null, // This hides it from the tab bar
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
         options={{
           href: null, // This hides it from the tab bar
         }}

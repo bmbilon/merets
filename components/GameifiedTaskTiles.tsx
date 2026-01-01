@@ -124,8 +124,8 @@ export const GameifiedTaskTiles: React.FC<Props> = ({
       const resolvedUserId = await mapUserId(userProfile.id)
       
       // Get current pending and approved commitments for THIS user (both are "active" commitments)
-      const pendingCommitments = await SupabaseService.getUserCommitments(resolvedUserId, 'pending')
-      const approvedCommitments = await SupabaseService.getUserCommitments(resolvedUserId, 'approved')
+      const pendingCommitments = await SupabaseService.getUserCommitments(resolvedUserId, 'pending_approval')
+      const approvedCommitments = await SupabaseService.getUserCommitments(resolvedUserId, 'accepted')
       
       const userActiveCommitments = [...pendingCommitments, ...approvedCommitments]
       const totalTime = userActiveCommitments.reduce((sum, c) => sum + c.effort_minutes, 0)
@@ -313,7 +313,7 @@ export const GameifiedTaskTiles: React.FC<Props> = ({
         skill_category: selectedTask.skill_category,
         effort_minutes: selectedTask.effort_minutes,
         pay_cents: selectedTask.base_pay_cents,
-        status: 'pending'
+        status: 'pending_approval'
       })
 
       setShowCommitmentModal(false)
