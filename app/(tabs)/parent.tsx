@@ -4,10 +4,11 @@ import { Text, Button, SegmentedButtons, FAB } from "react-native-paper";
 import ParentApprovalQueue from "@/components/ParentApprovalQueue";
 import TaskMallAdmin from "@/components/TaskMallAdmin";
 import SubmissionReviewModal from "@/components/SubmissionReviewModal";
+import FinancialSummary from "@/components/FinancialSummary";
 import { SupabaseService } from '../../lib/supabase-service';
 
 export default function ParentScreen() {
-  const [activeTab, setActiveTab] = useState<'approvals' | 'tasks'>('approvals');
+  const [activeTab, setActiveTab] = useState<'approvals' | 'tasks' | 'financial'>('approvals');
   const [pendingSubmissions, setPendingSubmissions] = useState<any[]>([]);
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -83,7 +84,7 @@ export default function ParentScreen() {
         {/* Tab Selector */}
         <SegmentedButtons
           value={activeTab}
-          onValueChange={(value) => setActiveTab(value as 'approvals' | 'tasks')}
+          onValueChange={(value) => setActiveTab(value as 'approvals' | 'tasks' | 'financial')}
           buttons={[
             {
               value: 'approvals',
@@ -92,8 +93,13 @@ export default function ParentScreen() {
             },
             {
               value: 'tasks',
-              label: 'Task Manager',
+              label: 'Tasks',
               icon: 'format-list-bulleted'
+            },
+            {
+              value: 'financial',
+              label: 'Financial',
+              icon: 'currency-usd'
             }
           ]}
         />
@@ -119,7 +125,7 @@ export default function ParentScreen() {
             />
           )}
         </>
-      ) : (
+      ) : activeTab === 'tasks' ? (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
           <View style={{ 
             backgroundColor: '#fff',
@@ -144,6 +150,8 @@ export default function ParentScreen() {
             </Button>
           </View>
         </ScrollView>
+      ) : (
+        <FinancialSummary />
       )}
 
       {/* FAB for quick access to task manager */}
