@@ -34,10 +34,10 @@ export default function Leaderboard({ currentUserId, compact = false }: Leaderbo
     try {
       setLoading(true);
       // Get all earner users sorted by XP
-      const { data, error } = await SupabaseService.supabase
+      const { data, error} = await SupabaseService.getSupabaseClient()
         .from('user_profiles')
         .select('*')
-        .eq('role', 'earner')
+        .eq('role', 'kid')
         .order('total_xp', { ascending: false })
         .limit(compact ? 3 : 10);
 
