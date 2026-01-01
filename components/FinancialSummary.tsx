@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { Surface, Text, Chip, Divider } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { SupabaseService } from '../lib/supabase-service';
+import { supabase } from '../lib/supabase';
 
 interface FinancialSummaryProps {
   compact?: boolean;
@@ -29,10 +29,10 @@ export default function FinancialSummary({ compact = false }: FinancialSummaryPr
       setLoading(true);
       
       // Get all earner profiles
-      const { data: users } = await SupabaseService.supabase
+      const { data: users } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('role', 'earner');
+        .eq('role', 'kid');
 
       if (!users) return;
 
@@ -50,7 +50,7 @@ export default function FinancialSummary({ compact = false }: FinancialSummaryPr
       });
 
       // Get pending submissions
-      const { data: pending } = await SupabaseService.supabase
+      const { data: pending } = await supabase
         .from('commitment_submissions')
         .select('commitment_id, commitments!inner(pay_cents)')
         .eq('status', 'pending_approval');
@@ -63,7 +63,7 @@ export default function FinancialSummary({ compact = false }: FinancialSummaryPr
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-      const { data: weeklyCommitments } = await SupabaseService.supabase
+      const { data: weeklyCommitments } = await supabase
         .from('commitments')
         .select('pay_cents')
         .eq('status', 'completed')
@@ -75,7 +75,7 @@ export default function FinancialSummary({ compact = false }: FinancialSummaryPr
       const oneMonthAgo = new Date();
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-      const { data: monthlyCommitments } = await SupabaseService.supabase
+      const { data: monthlyCommitments } = await supabase
         .from('commitments')
         .select('pay_cents')
         .eq('status', 'completed')
@@ -84,7 +84,7 @@ export default function FinancialSummary({ compact = false }: FinancialSummaryPr
       const thisMonth = monthlyCommitments?.reduce((sum, c) => sum + ((c.pay_cents || 0) / 100), 0) || 0;
 
       // Calculate average per task
-      const { data: allCompleted } = await SupabaseService.supabase
+      const { data: allCompleted } = await supabase
         .from('commitments')
         .select('pay_cents')
         .eq('status', 'completed');

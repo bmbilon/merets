@@ -95,7 +95,7 @@ export default function TabLayout() {
 
       {/* Payouts - Parent only */}
       <Tabs.Screen
-        name="family-chat"
+        name="payouts"
         options={{
           title: 'Payouts',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="banknote" color={color} />,
@@ -113,6 +113,12 @@ export default function TabLayout() {
       />
       
       {/* Hidden screens */}
+      <Tabs.Screen
+        name="family-chat"
+        options={{
+          href: null,
+        }}
+      />
       <Tabs.Screen
         name="onyx-dashboard"
         options={{
