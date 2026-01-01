@@ -33,7 +33,7 @@ export default function MentsMarketplace({
   ments: externalMents,
   activeMents: externalActiveMents,
   onMentPress,
-  onRefresh
+  onRefresh: onRefreshProp
 }: MentsMarketplaceProps) {
   const [activeSection, setActiveSection] = useState<'recommended' | 'quick' | 'available' | 'active'>('recommended');
   const [refreshing, setRefreshing] = useState(false);
@@ -69,11 +69,13 @@ export default function MentsMarketplace({
     },
   ];
 
-  const onRefresh = () => {
+  const handleRefresh = () => {
     setRefreshing(true);
     // Fetch new data
     setTimeout(() => setRefreshing(false), 1000);
   };
+
+  const onRefresh = onRefreshProp || handleRefresh;
 
   const renderMentCard = (ment: Ment) => (
     <TouchableOpacity
