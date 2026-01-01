@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, ScrollView } from "react-native";
 import { Text, Button, SegmentedButtons, FAB } from "react-native-paper";
 import ParentApprovalQueue from "@/components/ParentApprovalQueue";
-import TaskMallAdmin from "@/components/TaskMallAdmin";
+import { TaskMallAdmin } from "@/components/TaskMallAdmin";
 import SubmissionReviewModal from "@/components/SubmissionReviewModal";
 import FinancialSummary from "@/components/FinancialSummary";
 import { SupabaseService } from '../../lib/supabase-service';

@@ -470,7 +470,7 @@ export class SupabaseService {
           commitment:commitments(
             *,
             task:task_templates!commitments_task_template_id_fkey(*),
-            user:user_profiles(*)
+            user:user_profiles!commitments_user_id_fkey(*)
           )
         `)
         .eq('status', 'pending_approval')
