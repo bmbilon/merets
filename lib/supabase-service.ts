@@ -420,4 +420,99 @@ export class SupabaseService {
     if (error) throw error
     return data || []
   }
+
+  // ===== SUBMISSION FLOW =====
+  
+  // Submit a commitment for approval
+  static async submitCommitment(
+    commitmentId: string,
+    proofPhotos: string[],
+    submissionNotes: string
+  ) {
+    try {
+      // Create submission record
+      const { data: submission, error: submissionError } = await supabase
+        .from('commitment_submissions')
+        .insert({
+          commitment_id: commitmentId,
+          proof_photos: proofPhotos,
+          submission_notes: submissionNotes,
+          status: 'pending_approval',
+          submitted_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (submissionError) throw submissionError;
+
+      // Update commitment status to 'submitted'
+      const { error: commitmentError } = await supabase
+        .from('commitments')
+        .update({ status: 'submitted' })
+        .eq('id', commitmentId);
+
+      if (commitmentError) throw commitmentError;
+
+      return { success: true, submission };
+    } catch (error) {
+      console.error('Error submitting commitment:', error);
+      return { success: false, error };
+    }
+  }
+
+  // Get pending submissions for parent approval
+  static async getPendingSubmissions() {
+    try {
+      const { data, error } = await supabase
+        .from('commitment_submissions')
+        .select(`
+          *,
+          commitment:commitments(
+            *,
+            task:task_templates(*),
+            user:user_profiles(*)
+          )
+        `)
+        .eq('status', 'pending_approval')
+        .order('submitted_at', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching pending submissions:', error);
+      return [];
+    }
+  }
+
+  // Upload photo to Supabase storage
+  static async uploadPhoto(uri: string, userId: string): Promise<string | null> {
+    try {
+      // Generate unique filename
+      const filename = `${userId}/${Date.now()}.jpg`;
+      
+      // Convert URI to blob
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      
+      // Upload to Supabase storage
+      const { data, error } = await supabase.storage
+        .from('task-photos')
+        .upload(filename, blob, {
+          contentType: 'image/jpeg',
+          cacheControl: '3600'
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('task-photos')
+        .getPublicUrl(filename);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      return null;
+    }
+  }
 }

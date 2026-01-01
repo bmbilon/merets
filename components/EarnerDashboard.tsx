@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
-import { Surface, Text, ProgressBar, Chip, Avatar, Divider } from 'react-native-paper';
+import { Surface, Text, ProgressBar, Chip, Avatar, Divider, Button } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import SubmitWorkModal from './SubmitWorkModal';
 
 interface EarnerDashboardProps {
   userName: string;
@@ -27,6 +28,8 @@ export default function EarnerDashboard({
   const [activeTab, setActiveTab] = useState<'overview' | 'active' | 'history'>('overview');
   const [activeCommitments, setActiveCommitments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [selectedCommitment, setSelectedCommitment] = useState<any>(null);
   const screenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
@@ -301,12 +304,24 @@ export default function EarnerDashboard({
                         <Text style={{ color: '#2E7D32', fontWeight: '600', fontSize: 11 }}>In Progress</Text>
                       </Chip>
                     </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, marginBottom: 12 }}>
                       <IconSymbol size={16} name="dollarsign.circle.fill" color="#4CAF50" />
                       <Text variant="bodyMedium" style={{ fontWeight: '600', color: '#4CAF50' }}>
                         ${(commitment.pay_cents / 100).toFixed(2)}
                       </Text>
                     </View>
+                    <Button
+                      mode="contained"
+                      onPress={() => {
+                        setSelectedCommitment(commitment);
+                        setShowSubmitModal(true);
+                      }}
+                      style={{ borderRadius: 12 }}
+                      contentStyle={{ paddingVertical: 4 }}
+                      buttonColor="#2196F3"
+                    >
+                      Submit for Approval
+                    </Button>
                   </Surface>
                 ))}
               </View>
@@ -332,6 +347,20 @@ export default function EarnerDashboard({
           </View>
         )}
       </ScrollView>
+
+      {/* Submit Work Modal */}
+      {selectedCommitment && (
+        <SubmitWorkModal
+          visible={showSubmitModal}
+          onDismiss={() => setShowSubmitModal(false)}
+          mentId={selectedCommitment.id}
+          mentTitle={selectedCommitment.custom_title || 'Task'}
+          userId={userId || ''}
+          onSuccess={() => {
+            fetchActiveCommitments();
+          }}
+        />
+      )}
     </View>
   );
 }
