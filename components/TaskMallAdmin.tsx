@@ -827,23 +827,26 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                 <Text variant="bodyMedium" style={{ fontWeight: 'bold' }}>
                   Hourly Rate
                 </Text>
-                <TextInput
-                  value={(newTask.hourly_rate_cents / 100).toFixed(2)}
-                  onChangeText={(text) => {
-                    const dollars = parseFloat(text) || 0;
-                    const cents = Math.round(dollars * 100);
-                    const newHourlyRate = Math.max(100, Math.min(10000, cents));
-                    setNewTask({
-                      ...newTask,
-                      hourly_rate_cents: newHourlyRate,
-                      base_pay_cents: Math.round((newHourlyRate / 60) * newTask.effort_minutes)
-                    });
-                  }}
-                  keyboardType="decimal-pad"
-                  style={{ width: 100, height: 40, textAlign: 'center' }}
-                  left={<TextInput.Affix text="$" />}
-                  right={<TextInput.Affix text="/hr" />}
-                />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <TextInput
+                    value={(newTask.hourly_rate_cents / 100).toFixed(1)}
+                    onChangeText={(text) => {
+                      const dollars = parseFloat(text) || 0;
+                      const cents = Math.round(dollars * 100);
+                      const newHourlyRate = Math.max(100, Math.min(10000, cents));
+                      setNewTask({
+                        ...newTask,
+                        hourly_rate_cents: newHourlyRate,
+                        base_pay_cents: Math.round((newHourlyRate / 60) * newTask.effort_minutes)
+                      });
+                    }}
+                    keyboardType="decimal-pad"
+                    style={{ width: 70, height: 40, textAlign: 'center' }}
+                    left={<TextInput.Affix text="$" />}
+                    dense
+                  />
+                  <Text variant="bodySmall" style={{ color: '#666' }}>/hr</Text>
+                </View>
               </View>
               <Slider
                 value={newTask.hourly_rate_cents}
