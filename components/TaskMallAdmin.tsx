@@ -586,7 +586,7 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                       });
                     }}
                     keyboardType="decimal-pad"
-                    style={{ width: 120, height: 48, textAlign: 'center', fontSize: 18 }}
+                    style={{ width: 140, height: 48, textAlign: 'center', fontSize: 18 }}
                     left={<TextInput.Affix text="$" />}
                     right={<TextInput.Affix text="/hr" />}
                   />
@@ -681,7 +681,7 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                       setEditingTask({...editingTask, base_pay_cents: newPay});
                     }}
                     keyboardType="decimal-pad"
-                    style={{ width: 120, height: 48, textAlign: 'center', fontSize: 18 }}
+                    style={{ width: 140, height: 48, textAlign: 'center', fontSize: 18 }}
                     left={<TextInput.Affix text="$" />}
                   />
                 </View>
