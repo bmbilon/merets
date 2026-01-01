@@ -544,7 +544,7 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
         >
           {editingTask && (
             <ScrollView>
-              <Text variant="titleLarge" style={{ marginBottom: 16 }}>
+              <Text variant="headlineMedium" style={{ marginBottom: 20, fontWeight: 'bold', fontSize: 24 }}>
                 Edit Task
               </Text>
               
@@ -553,7 +553,8 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                 label="Task Title"
                 value={editingTask.title}
                 onChangeText={(text) => setEditingTask({...editingTask, title: text})}
-                style={{ marginBottom: 12 }}
+                style={{ marginBottom: 16, fontSize: 18 }}
+                theme={{ fonts: { bodyLarge: { fontSize: 18 } } }}
               />
               
               <TextInput
@@ -562,13 +563,14 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                 onChangeText={(text) => setEditingTask({...editingTask, description: text})}
                 multiline
                 numberOfLines={3}
-                style={{ marginBottom: 12 }}
+                style={{ marginBottom: 16, fontSize: 16 }}
+                theme={{ fonts: { bodyLarge: { fontSize: 16 } } }}
               />
 
               {/* Hourly Rate */}
               <View style={{ marginBottom: 20 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <Text variant="bodyMedium" style={{ fontWeight: 'bold' }}>
+                  <Text variant="titleMedium" style={{ fontWeight: 'bold', fontSize: 20 }}>
                     Hourly Rate
                   </Text>
                   <TextInput
@@ -584,7 +586,7 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                       });
                     }}
                     keyboardType="decimal-pad"
-                    style={{ width: 100, height: 40, textAlign: 'center' }}
+                    style={{ width: 120, height: 48, textAlign: 'center', fontSize: 18 }}
                     left={<TextInput.Affix text="$" />}
                     right={<TextInput.Affix text="/hr" />}
                   />
@@ -607,15 +609,15 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                   thumbTintColor="#9C27B0"
                 />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text variant="bodySmall" style={{ color: '#666' }}>$1/hr</Text>
-                  <Text variant="bodySmall" style={{ color: '#666' }}>$100/hr</Text>
+                  <Text variant="bodyMedium" style={{ color: '#666', fontSize: 14 }}>$1/hr</Text>
+                  <Text variant="bodyMedium" style={{ color: '#666', fontSize: 14 }}>$100/hr</Text>
                 </View>
               </View>
 
               {/* Time Slider */}
               <View style={{ marginBottom: 20 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <Text variant="bodyMedium" style={{ fontWeight: 'bold' }}>
+                  <Text variant="titleMedium" style={{ fontWeight: 'bold', fontSize: 20 }}>
                     Time
                   </Text>
                   <TextInput
@@ -630,7 +632,7 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                       });
                     }}
                     keyboardType="numeric"
-                    style={{ width: 80, height: 40, textAlign: 'center' }}
+                    style={{ width: 100, height: 48, textAlign: 'center', fontSize: 18 }}
                     right={<TextInput.Affix text="min" />}
                   />
                 </View>
@@ -652,8 +654,8 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                   thumbTintColor="#4CAF50"
                 />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text variant="bodySmall" style={{ color: '#666' }}>2 min</Text>
-                  <Text variant="bodySmall" style={{ color: '#666' }}>120 min</Text>
+                  <Text variant="bodyMedium" style={{ color: '#666', fontSize: 14 }}>2 min</Text>
+                  <Text variant="bodyMedium" style={{ color: '#666', fontSize: 14 }}>120 min</Text>
                 </View>
               </View>
 
@@ -679,7 +681,7 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                       setEditingTask({...editingTask, base_pay_cents: newPay});
                     }}
                     keyboardType="decimal-pad"
-                    style={{ width: 100, height: 40, textAlign: 'center' }}
+                    style={{ width: 120, height: 48, textAlign: 'center', fontSize: 18 }}
                     left={<TextInput.Affix text="$" />}
                   />
                 </View>
