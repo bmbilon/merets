@@ -6,6 +6,8 @@ import {
   Text,
   IconButton,
 } from "react-native-paper";
+import MentsMarketplace from "@/components/MentsMarketplace";
+import MentDetailModal from "@/components/MentDetailModal";
 
 export default function MainApp() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -49,12 +51,10 @@ export default function MainApp() {
 
   switch (selectedUser) {
     case "aveya":
-      const AveyaDashboard = require('./aveya-dashboard').default;
-      return <AveyaDashboard onSwitchUser={handleSwitchUser} />;
+      return <EarnerMarketplace userName="Aveya" userColor="#E91E63" onSwitchUser={handleSwitchUser} />;
     
     case "onyx":
-      const OnyxDashboard = require('./onyx-dashboard').default;
-      return <OnyxDashboard onSwitchUser={handleSwitchUser} />;
+      return <EarnerMarketplace userName="Onyx" userColor="#2196F3" onSwitchUser={handleSwitchUser} />;
     
     case "lauren":
     case "brett":
@@ -65,6 +65,82 @@ export default function MainApp() {
       setSelectedUser(null);
       return null;
   }
+}
+
+// Earner Marketplace Component
+function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: string; userColor: string; onSwitchUser: () => void }) {
+  const [selectedMent, setSelectedMent] = useState<any>(null);
+  const [showDetail, setShowDetail] = useState(false);
+
+  // Mock data for now - will be replaced with Supabase queries
+  const mockMents = [
+    {
+      id: '1',
+      title: 'Clean the garage',
+      description: 'Sweep, organize tools, take out trash',
+      category: 'Chores',
+      credits: 15,
+      timeEstimate: '1 hour',
+      dueDate: 'Tomorrow',
+      difficulty: 'medium' as const,
+      approvalRequired: true,
+      issuerName: 'Dad',
+      issuerTrust: 'Family',
+      issuerRep: 100
+    },
+    {
+      id: '2',
+      title: 'Walk the dog',
+      description: '30 minute walk around the neighborhood',
+      category: 'Pet Care',
+      credits: 8,
+      timeEstimate: '30 min',
+      dueDate: 'Today',
+      difficulty: 'easy' as const,
+      approvalRequired: false,
+      issuerName: 'Mom',
+      issuerTrust: 'Family',
+      issuerRep: 100
+    }
+  ];
+
+  const handleCommit = (mentId: string) => {
+    console.log('Committed to ment:', mentId);
+    setShowDetail(false);
+    // TODO: Integrate with Supabase
+  };
+
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ position: 'absolute', top: 50, right: 16, zIndex: 1000 }}>
+        <IconButton 
+          icon="account-switch" 
+          onPress={onSwitchUser}
+          style={{ backgroundColor: 'rgba(255,255,255,0.9)' }}
+        />
+      </View>
+      <MentsMarketplace 
+        userName={userName}
+        userColor={userColor}
+        ments={mockMents}
+        activeMents={[]}
+        onMentPress={(ment) => {
+          setSelectedMent(ment);
+          setShowDetail(true);
+        }}
+        onRefresh={() => {
+          console.log('Refreshing ments...');
+          // TODO: Fetch from Supabase
+        }}
+      />
+      <MentDetailModal
+        visible={showDetail}
+        onDismiss={() => setShowDetail(false)}
+        ment={selectedMent}
+        onCommit={handleCommit}
+      />
+    </View>
+  );
 }
 
 // Parent Dashboard Component (using the existing parent screen logic)

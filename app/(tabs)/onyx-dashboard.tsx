@@ -1,29 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { View, ScrollView, Alert, SafeAreaView } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  Provider as PaperProvider,
-  Button,
-  Card,
-  Text,
-  Avatar,
-  ProgressBar,
-  Divider,
-  Chip,
-  IconButton,
-  TextInput,
-  SegmentedButtons,
-  Menu,
-} from "react-native-paper";
-
-import { SkillId, SKILLS } from '../../lib/systems/skills-system';
-import FamilyChat from './family-chat';
-import { GameifiedTaskTiles } from '../../components/GameifiedTaskTiles';
+import React, { useState, useEffect } from "react";
+import { View } from "react-native";
+import EarnerDashboard from "@/components/EarnerDashboard";
 import { SupabaseService } from '../../lib/supabase-service';
-import { WeeklyProgressBubbles, MonthlyProgressSlider, StreakVisualizer } from '../../components/GameProgress';
-import { UserStatsHeader } from '../../components/UserStatsHeader';
-import { getUserEarningsStats } from '../../lib/earnings-calculator';
-import { TaskMarketplace } from '../../components/TaskMarketplace';
 
 // Same types as Aveya's dashboard
 type Status = "SUBMITTED" | "APPROVED" | "REJECTED" | "COMPLETED" | "MISSED";
@@ -157,6 +135,46 @@ interface OnyxDashboardProps {
 }
 
 export default function OnyxDashboard({ onSwitchUser }: OnyxDashboardProps) {
+  const [rep, setRep] = useState(45);
+  const [totalMerets, setTotalMerets] = useState(80);
+  const [totalCredits, setTotalCredits] = useState(125);
+  const [activeMents, setActiveMents] = useState(2);
+  const [completedMents, setCompletedMents] = useState(7);
+
+  useEffect(() => {
+    loadUserStats();
+  }, []);
+
+  const loadUserStats = async () => {
+    try {
+      // TODO: Replace with actual Supabase queries
+      // const stats = await SupabaseService.getUserStats('onyx');
+      // setRep(stats.rep);
+      // setTotalMerets(stats.totalMerets);
+      // setTotalCredits(stats.totalCredits);
+      // setActiveMents(stats.activeMents);
+      // setCompletedMents(stats.completedMents);
+    } catch (error) {
+      console.error('Error loading user stats:', error);
+    }
+  };
+
+  return (
+    <EarnerDashboard
+      userName="Onyx"
+      userColor="#2196F3"
+      rep={rep}
+      totalMerets={totalMerets}
+      totalCredits={totalCredits}
+      activeMents={activeMents}
+      completedMents={completedMents}
+    />
+  );
+}
+
+// Old implementation below - will be removed after testing
+/*
+export default function OnyxDashboardOld({ onSwitchUser }: OnyxDashboardProps) {
   const { store, persist } = useStore();
   const [currentView, setCurrentView] = useState<"dashboard" | "create" | "chat">("dashboard");
   const [realCommitments, setRealCommitments] = useState<any[]>([]);
