@@ -43,6 +43,8 @@ export default function EarnerTaskMarket({
   const [activeSection, setActiveSection] = useState<'available' | 'quick' | 'recommended' | 'active'>('available');
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [groupBy, setGroupBy] = useState<'none' | 'category' | 'pay'>('category');
+  const [sortBy, setSortBy] = useState<'pay' | 'time'>('pay');
 
   const tasks: Task[] = externalTasks || [];
 
@@ -55,7 +57,7 @@ export default function EarnerTaskMarket({
   };
 
   // Filter and search tasks
-  const filteredTasks = useMemo(() => {
+  const groupedTasks = useMemo(() => {
     let filtered = tasks.filter(t => t.status === activeSection);
     
     if (searchQuery.trim()) {
@@ -68,8 +70,35 @@ export default function EarnerTaskMarket({
       );
     }
     
-    return filtered;
-  }, [tasks, activeSection, searchQuery]);
+    // Group tasks
+    if (groupBy === 'none') {
+      return { 'All Tasks': filtered };
+    } else if (groupBy === 'category') {
+      const groups: Record<string, Task[]> = {};
+      filtered.forEach(task => {
+        const cat = task.category || 'Other';
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push(task);
+      });
+      // Sort each group by pay
+      Object.keys(groups).forEach(key => {
+        groups[key].sort((a, b) => b.credits - a.credits);
+      });
+      return groups;
+    } else { // groupBy === 'pay'
+      const groups: Record<string, Task[]> = {
+        'High Pay ($8+)': [],
+        'Medium Pay ($4-7)': [],
+        'Quick Cash ($1-3)': []
+      };
+      filtered.forEach(task => {
+        if (task.credits >= 8) groups['High Pay ($8+)'].push(task);
+        else if (task.credits >= 4) groups['Medium Pay ($4-7)'].push(task);
+        else groups['Quick Cash ($1-3)'].push(task);
+      });
+      return groups;
+    }
+  }, [tasks, activeSection, searchQuery, groupBy]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -88,12 +117,12 @@ export default function EarnerTaskMarket({
     >
       <Surface
         style={{
-          marginBottom: 12,
-          borderRadius: 16,
+          marginBottom: 8,
+          borderRadius: 12,
           backgroundColor: '#fff',
-          elevation: 2,
+          elevation: 1,
           overflow: 'hidden',
-          borderWidth: 2,
+          borderWidth: 1.5,
           borderColor: task.status === 'recommended' ? '#FFD700' : 'transparent'
         }}
       >
@@ -113,112 +142,47 @@ export default function EarnerTaskMarket({
           </View>
         )}
 
-        <View style={{ padding: 12 }}>
-          {/* Header */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-            <View style={{ flex: 1, paddingRight: 16 }}>
-              <Text variant="titleMedium" style={{ fontWeight: 'bold', marginBottom: 4, color: '#1a1a1a' }}>
-                {task.title}
-              </Text>
-              <Text variant="bodySmall" style={{ color: '#666', lineHeight: 18 }}>
-                {task.description}
-              </Text>
-            </View>
-            
-            {/* Earnings Badge */}
-            <View style={{ 
-              backgroundColor: '#E8F5E9',
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 12,
-              minWidth: 70,
-              alignItems: 'center'
-            }}>
-              <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#2E7D32' }}>
-                ${task.credits}
-              </Text>
-            </View>
-          </View>
-
-          {/* Meta Info */}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-            <Chip
-              icon={() => <IconSymbol size={12} name="clock.fill" color="#666" />}
-              compact
-              style={{ backgroundColor: '#F5F5F5', height: 28 }}
-              textStyle={{ fontSize: 11 }}
-            >
-              {task.timeEstimate}
-            </Chip>
-            
-            <Chip
-              compact
-              style={{ 
-                backgroundColor: getDifficultyColor(task.difficulty) + '20',
-                height: 28,
-                borderWidth: 1,
-                borderColor: getDifficultyColor(task.difficulty)
-              }}
-              textStyle={{ 
-                fontSize: 11, 
-                color: getDifficultyColor(task.difficulty),
-                fontWeight: '600'
-              }}
-            >
-              {task.difficulty.toUpperCase()}
-            </Chip>
-
-            <Chip
-              compact
-              style={{ backgroundColor: '#E3F2FD', height: 28 }}
-              textStyle={{ fontSize: 11, color: '#1976D2', fontWeight: '500' }}
-            >
-              {task.category}
-            </Chip>
-
-            {task.approvalRequired && (
-              <Chip
-                icon={() => <IconSymbol size={12} name="lock.fill" color="#FF9800" />}
-                compact
-                style={{ backgroundColor: '#FFF3E0', height: 28 }}
-                textStyle={{ fontSize: 11, color: '#FF9800', fontWeight: '500' }}
-              >
-                Needs approval
-              </Chip>
-            )}
-          </View>
-
-          {/* Footer */}
+        <View style={{ padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {/* Price Badge */}
           <View style={{ 
-            flexDirection: 'row', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            paddingTop: 10,
-            borderTopWidth: 1,
-            borderTopColor: '#f0f0f0'
+            backgroundColor: '#E8F5E9',
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            borderRadius: 10,
+            minWidth: 55,
+            alignItems: 'center'
           }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Avatar.Text 
-                size={28} 
-                label={task.issuerName[0]} 
-                style={{ backgroundColor: '#6200ee' }} 
-                labelStyle={{ fontSize: 12 }}
-              />
-              <Text variant="bodySmall" style={{ color: '#666', fontWeight: '500', fontSize: 12 }}>
-                {task.issuerName}
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#2E7D32' }}>
+              ${task.credits}
+            </Text>
+          </View>
+          
+          {/* Task Info */}
+          <View style={{ flex: 1 }}>
+            <Text variant="titleSmall" style={{ fontWeight: 'bold', marginBottom: 2, color: '#1a1a1a' }}>
+              {task.title}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <Text style={{ fontSize: 10, color: '#999' }}>🕒 {task.timeEstimate}</Text>
+              <Text style={{ fontSize: 10, color: getDifficultyColor(task.difficulty), fontWeight: '600' }}>
+                {task.difficulty.toUpperCase()}
               </Text>
+              {task.approvalRequired && (
+                <Text style={{ fontSize: 10, color: '#FF9800' }}>🔒 Approval</Text>
+              )}
             </View>
-            
-            <View style={{
-              backgroundColor: '#6200ee',
-              paddingHorizontal: 16,
-              paddingVertical: 6,
-              borderRadius: 16
-            }}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>
-                Start →
-              </Text>
-            </View>
+          </View>
+          
+          {/* Start Button */}
+          <View style={{
+            backgroundColor: '#6200ee',
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 12
+          }}>
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>
+              →
+            </Text>
           </View>
         </View>
       </Surface>
@@ -315,6 +279,40 @@ export default function EarnerTaskMarket({
         />
       </LinearGradient>
 
+      {/* Sort/Group Bar */}
+      <View style={{ backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          <Text variant="labelSmall" style={{ color: '#666' }}>Group:</Text>
+          <Chip
+            selected={groupBy === 'category'}
+            onPress={() => setGroupBy('category')}
+            compact
+            style={{ height: 28, backgroundColor: groupBy === 'category' ? '#6200ee' : '#f5f5f5' }}
+            textStyle={{ fontSize: 11, color: groupBy === 'category' ? '#fff' : '#666' }}
+          >
+            Category
+          </Chip>
+          <Chip
+            selected={groupBy === 'pay'}
+            onPress={() => setGroupBy('pay')}
+            compact
+            style={{ height: 28, backgroundColor: groupBy === 'pay' ? '#6200ee' : '#f5f5f5' }}
+            textStyle={{ fontSize: 11, color: groupBy === 'pay' ? '#fff' : '#666' }}
+          >
+            Pay
+          </Chip>
+          <Chip
+            selected={groupBy === 'none'}
+            onPress={() => setGroupBy('none')}
+            compact
+            style={{ height: 28, backgroundColor: groupBy === 'none' ? '#6200ee' : '#f5f5f5' }}
+            textStyle={{ fontSize: 11, color: groupBy === 'none' ? '#fff' : '#666' }}
+          >
+            All
+          </Chip>
+        </View>
+      </View>
+
       {/* Section Tabs */}
       <View style={{ backgroundColor: '#fff', paddingVertical: 12 }}>
         <ScrollView 
@@ -393,7 +391,34 @@ export default function EarnerTaskMarket({
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6200ee']} />
         }
       >
-        {filteredTasks.length === 0 ? renderEmptyState() : filteredTasks.map(renderTaskCard)}
+        {Object.keys(groupedTasks).length === 0 || Object.values(groupedTasks).every(arr => arr.length === 0) ? (
+          renderEmptyState()
+        ) : (
+          Object.entries(groupedTasks).map(([groupName, groupTasks]) => (
+            groupTasks.length > 0 && (
+              <View key={groupName} style={{ marginBottom: 16 }}>
+                {groupBy !== 'none' && (
+                  <View style={{ 
+                    flexDirection: 'row', 
+                    alignItems: 'center', 
+                    marginBottom: 8,
+                    paddingBottom: 6,
+                    borderBottomWidth: 2,
+                    borderBottomColor: '#6200ee'
+                  }}>
+                    <Text variant="titleSmall" style={{ fontWeight: 'bold', color: '#6200ee' }}>
+                      {groupName}
+                    </Text>
+                    <Text variant="bodySmall" style={{ marginLeft: 8, color: '#999' }}>
+                      ({groupTasks.length})
+                    </Text>
+                  </View>
+                )}
+                {groupTasks.map(renderTaskCard)}
+              </View>
+            )
+          ))
+        )}
       </ScrollView>
     </View>
   );
