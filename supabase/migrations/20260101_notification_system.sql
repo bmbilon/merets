@@ -187,7 +187,7 @@ DECLARE
   v_is_external BOOLEAN;
 BEGIN
   -- Get task and user details
-  SELECT title, created_by INTO v_task_title, v_issuer_id
+  SELECT title, issuer_id INTO v_task_title, v_issuer_id
   FROM task_templates WHERE id = NEW.task_template_id;
   
   SELECT name INTO v_earner_name
@@ -281,7 +281,7 @@ DECLARE
   v_parent_id UUID;
 BEGIN
   -- Get commitment and task details
-  SELECT c.user_id, c.task_template_id, t.title, t.created_by
+  SELECT c.user_id, c.task_template_id, t.title, t.issuer_id
   INTO v_earner_id, NEW.commitment_id, v_task_title, v_issuer_id
   FROM commitments c
   JOIN task_templates t ON t.id = c.task_template_id
