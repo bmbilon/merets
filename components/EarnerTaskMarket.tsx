@@ -88,10 +88,10 @@ export default function EarnerTaskMarket({
     >
       <Surface
         style={{
-          marginBottom: 16,
-          borderRadius: 20,
+          marginBottom: 12,
+          borderRadius: 16,
           backgroundColor: '#fff',
-          elevation: 3,
+          elevation: 2,
           overflow: 'hidden',
           borderWidth: 2,
           borderColor: task.status === 'recommended' ? '#FFD700' : 'transparent'
@@ -113,14 +113,14 @@ export default function EarnerTaskMarket({
           </View>
         )}
 
-        <View style={{ padding: 16 }}>
+        <View style={{ padding: 12 }}>
           {/* Header */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
             <View style={{ flex: 1, paddingRight: 16 }}>
-              <Text variant="titleLarge" style={{ fontWeight: 'bold', marginBottom: 6, color: '#1a1a1a' }}>
+              <Text variant="titleMedium" style={{ fontWeight: 'bold', marginBottom: 4, color: '#1a1a1a' }}>
                 {task.title}
               </Text>
-              <Text variant="bodyMedium" style={{ color: '#666', lineHeight: 20 }}>
+              <Text variant="bodySmall" style={{ color: '#666', lineHeight: 18 }}>
                 {task.description}
               </Text>
             </View>
@@ -128,25 +128,25 @@ export default function EarnerTaskMarket({
             {/* Earnings Badge */}
             <View style={{ 
               backgroundColor: '#E8F5E9',
-              paddingHorizontal: 16,
-              paddingVertical: 8,
-              borderRadius: 16,
-              minWidth: 80,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 12,
+              minWidth: 70,
               alignItems: 'center'
             }}>
-              <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#2E7D32' }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#2E7D32' }}>
                 ${task.credits}
               </Text>
             </View>
           </View>
 
           {/* Meta Info */}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
             <Chip
-              icon={() => <IconSymbol size={14} name="clock.fill" color="#666" />}
+              icon={() => <IconSymbol size={12} name="clock.fill" color="#666" />}
               compact
-              style={{ backgroundColor: '#F5F5F5', height: 32 }}
-              textStyle={{ fontSize: 12 }}
+              style={{ backgroundColor: '#F5F5F5', height: 28 }}
+              textStyle={{ fontSize: 11 }}
             >
               {task.timeEstimate}
             </Chip>
@@ -155,12 +155,12 @@ export default function EarnerTaskMarket({
               compact
               style={{ 
                 backgroundColor: getDifficultyColor(task.difficulty) + '20',
-                height: 32,
+                height: 28,
                 borderWidth: 1,
                 borderColor: getDifficultyColor(task.difficulty)
               }}
               textStyle={{ 
-                fontSize: 12, 
+                fontSize: 11, 
                 color: getDifficultyColor(task.difficulty),
                 fontWeight: '600'
               }}
@@ -170,18 +170,18 @@ export default function EarnerTaskMarket({
 
             <Chip
               compact
-              style={{ backgroundColor: '#E3F2FD', height: 32 }}
-              textStyle={{ fontSize: 12, color: '#1976D2', fontWeight: '500' }}
+              style={{ backgroundColor: '#E3F2FD', height: 28 }}
+              textStyle={{ fontSize: 11, color: '#1976D2', fontWeight: '500' }}
             >
               {task.category}
             </Chip>
 
             {task.approvalRequired && (
               <Chip
-                icon={() => <IconSymbol size={14} name="lock.fill" color="#FF9800" />}
+                icon={() => <IconSymbol size={12} name="lock.fill" color="#FF9800" />}
                 compact
-                style={{ backgroundColor: '#FFF3E0', height: 32 }}
-                textStyle={{ fontSize: 12, color: '#FF9800', fontWeight: '500' }}
+                style={{ backgroundColor: '#FFF3E0', height: 28 }}
+                textStyle={{ fontSize: 11, color: '#FF9800', fontWeight: '500' }}
               >
                 Needs approval
               </Chip>
@@ -193,29 +193,29 @@ export default function EarnerTaskMarket({
             flexDirection: 'row', 
             justifyContent: 'space-between', 
             alignItems: 'center',
-            paddingTop: 12,
+            paddingTop: 10,
             borderTopWidth: 1,
             borderTopColor: '#f0f0f0'
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Avatar.Text 
-                size={32} 
+                size={28} 
                 label={task.issuerName[0]} 
                 style={{ backgroundColor: '#6200ee' }} 
-                labelStyle={{ fontSize: 14 }}
+                labelStyle={{ fontSize: 12 }}
               />
-              <Text variant="bodySmall" style={{ color: '#666', fontWeight: '500' }}>
+              <Text variant="bodySmall" style={{ color: '#666', fontWeight: '500', fontSize: 12 }}>
                 {task.issuerName}
               </Text>
             </View>
             
             <View style={{
               backgroundColor: '#6200ee',
-              paddingHorizontal: 20,
-              paddingVertical: 8,
-              borderRadius: 20
+              paddingHorizontal: 16,
+              paddingVertical: 6,
+              borderRadius: 16
             }}>
-              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>
+              <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 13 }}>
                 Start →
               </Text>
             </View>
@@ -226,7 +226,7 @@ export default function EarnerTaskMarket({
   );
 
   const renderEmptyState = () => (
-    <View style={{ alignItems: 'center', paddingVertical: 60 }}>
+    <View style={{ alignItems: 'center', paddingVertical: 40 }}>
       <Text style={{ fontSize: 48, marginBottom: 16 }}>
         {searchQuery.trim() ? '🔍' : activeSection === 'active' ? '🎯' : '📋'}
       </Text>
@@ -253,31 +253,31 @@ export default function EarnerTaskMarket({
       <LinearGradient
         colors={['#6200ee', '#7c4dff']}
         style={{
-          paddingTop: 60,
-          paddingHorizontal: 20,
-          paddingBottom: 20,
-          borderBottomLeftRadius: 30,
-          borderBottomRightRadius: 30,
+          paddingTop: 50,
+          paddingHorizontal: 16,
+          paddingBottom: 12,
+          borderBottomLeftRadius: 20,
+          borderBottomRightRadius: 20,
         }}
       >
-        <Text variant="headlineSmall" style={{ color: '#fff', fontWeight: 'bold', marginBottom: 16 }}>
+        <Text variant="titleLarge" style={{ color: '#fff', fontWeight: 'bold', marginBottom: 12 }}>
           Hey {userName}! 👋
         </Text>
 
         {/* Stats Row */}
-        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
           <View style={{ 
             flex: 1, 
             backgroundColor: 'rgba(255,255,255,0.2)', 
-            padding: 16, 
-            borderRadius: 16,
+            padding: 12, 
+            borderRadius: 12,
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.3)'
           }}>
-            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12, marginBottom: 4 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11, marginBottom: 2 }}>
               Total Earned
             </Text>
-            <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold' }}>
+            <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>
               ${totalEarnings.toFixed(2)}
             </Text>
           </View>
@@ -285,15 +285,15 @@ export default function EarnerTaskMarket({
           <View style={{ 
             flex: 1, 
             backgroundColor: 'rgba(255,255,255,0.2)', 
-            padding: 16, 
-            borderRadius: 16,
+            padding: 12, 
+            borderRadius: 12,
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.3)'
           }}>
-            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12, marginBottom: 4 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11, marginBottom: 2 }}>
               Streak 🔥
             </Text>
-            <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold' }}>
+            <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>
               {currentStreak} days
             </Text>
           </View>
@@ -306,31 +306,33 @@ export default function EarnerTaskMarket({
           value={searchQuery}
           style={{ 
             backgroundColor: '#fff',
-            borderRadius: 16,
-            elevation: 0
+            borderRadius: 12,
+            elevation: 0,
+            height: 44
           }}
-          inputStyle={{ fontSize: 15 }}
+          inputStyle={{ fontSize: 14 }}
           iconColor="#6200ee"
         />
       </LinearGradient>
 
       {/* Section Tabs */}
-      <View style={{ backgroundColor: '#fff', paddingVertical: 16 }}>
+      <View style={{ backgroundColor: '#fff', paddingVertical: 12 }}>
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
+          contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
         >
           <Chip
             selected={activeSection === 'available'}
             onPress={() => setActiveSection('available')}
             style={{ 
               backgroundColor: activeSection === 'available' ? '#6200ee' : '#f5f5f5',
-              height: 40
+              height: 36
             }}
             textStyle={{ 
               color: activeSection === 'available' ? '#fff' : '#666',
-              fontWeight: '600'
+              fontWeight: '600',
+              fontSize: 13
             }}
           >
             📋 Available
@@ -340,11 +342,12 @@ export default function EarnerTaskMarket({
             onPress={() => setActiveSection('quick')}
             style={{ 
               backgroundColor: activeSection === 'quick' ? '#6200ee' : '#f5f5f5',
-              height: 40
+              height: 36
             }}
             textStyle={{ 
               color: activeSection === 'quick' ? '#fff' : '#666',
-              fontWeight: '600'
+              fontWeight: '600',
+              fontSize: 13
             }}
           >
             ⚡ Quick Wins
@@ -354,11 +357,12 @@ export default function EarnerTaskMarket({
             onPress={() => setActiveSection('recommended')}
             style={{ 
               backgroundColor: activeSection === 'recommended' ? '#6200ee' : '#f5f5f5',
-              height: 40
+              height: 36
             }}
             textStyle={{ 
               color: activeSection === 'recommended' ? '#fff' : '#666',
-              fontWeight: '600'
+              fontWeight: '600',
+              fontSize: 13
             }}
           >
             ⭐ For You
@@ -368,11 +372,12 @@ export default function EarnerTaskMarket({
             onPress={() => setActiveSection('active')}
             style={{ 
               backgroundColor: activeSection === 'active' ? '#6200ee' : '#f5f5f5',
-              height: 40
+              height: 36
             }}
             textStyle={{ 
               color: activeSection === 'active' ? '#fff' : '#666',
-              fontWeight: '600'
+              fontWeight: '600',
+              fontSize: 13
             }}
           >
             🔥 My Tasks
@@ -383,7 +388,7 @@ export default function EarnerTaskMarket({
       {/* Task List */}
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 20 }}
+        contentContainerStyle={{ padding: 16 }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6200ee']} />
         }
