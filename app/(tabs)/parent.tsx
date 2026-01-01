@@ -3,82 +3,58 @@ import { View, ScrollView } from "react-native";
 import { Text, Button, SegmentedButtons, FAB } from "react-native-paper";
 import ParentApprovalQueue from "@/components/ParentApprovalQueue";
 import TaskMallAdmin from "@/components/TaskMallAdmin";
+import SubmissionReviewModal from "@/components/SubmissionReviewModal";
 import { SupabaseService } from '../../lib/supabase-service';
 
 export default function ParentScreen() {
-  const [activeTab, setActiveTab] = useState<'approvals' | 'tasks'>('tasks');
-  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'approvals' | 'tasks'>('approvals');
+  const [pendingSubmissions, setPendingSubmissions] = useState<any[]>([]);
   const [showTaskManager, setShowTaskManager] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [parentProfile, setParentProfile] = useState<any>(null);
 
   useEffect(() => {
-    loadPendingApprovals();
-  }, []);
+    fetchParentProfile();
+    if (activeTab === 'approvals') {
+      fetchPendingSubmissions();
+    }
+  }, [activeTab]);
 
-  const loadPendingApprovals = async () => {
+  const fetchParentProfile = async () => {
     try {
-      // TODO: Replace with actual Supabase queries
-      // const approvals = await SupabaseService.getPendingApprovals();
-      // setPendingApprovals(approvals);
-      
-      // Mock data for now
-      setPendingApprovals([
-        {
-          id: '1',
-          mentTitle: 'Clean the garage',
-          mentDescription: 'Sweep floor, organize tools on pegboard, take out trash and recycling',
-          credits: 15,
-          timeEstimate: '1 hour',
-          dueDate: 'Tomorrow',
-          earnerName: 'Aveya',
-          earnerAge: 15,
-          issuerName: 'Dad',
-          issuerTrust: 'Family',
-          category: 'Chores',
-          safetyNotes: 'Use gloves when handling sharp tools'
-        },
-        {
-          id: '2',
-          mentTitle: 'Walk the dog',
-          mentDescription: '30 minute walk around the neighborhood, bring water and waste bags',
-          credits: 8,
-          timeEstimate: '30 min',
-          dueDate: 'Today',
-          earnerName: 'Onyx',
-          earnerAge: 11,
-          issuerName: 'Mom',
-          issuerTrust: 'Family',
-          category: 'Pet Care'
-        }
-      ]);
+      const profile = await SupabaseService.getUserByName('Lauren');
+      setParentProfile(profile);
+      console.log('[PARENT] Parent profile loaded:', profile?.name);
     } catch (error) {
-      console.error('Error loading pending approvals:', error);
+      console.error('Error fetching parent profile:', error);
     }
   };
 
-  const handleApprove = async (id: string) => {
+  const fetchPendingSubmissions = async () => {
+    setLoading(true);
     try {
-      // TODO: Implement Supabase approval logic
-      // await SupabaseService.approveMent(id);
-      
-      // Remove from pending list
-      setPendingApprovals(prev => prev.filter(a => a.id !== id));
-      console.log('Approved ment:', id);
+      console.log('[PARENT] Fetching pending submissions...');
+      const submissions = await SupabaseService.getPendingSubmissions();
+      console.log('[PARENT] Found submissions:', submissions.length);
+      setPendingSubmissions(submissions);
     } catch (error) {
-      console.error('Error approving ment:', error);
+      console.error('Error fetching pending submissions:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleReject = async (id: string, reason?: string) => {
-    try {
-      // TODO: Implement Supabase rejection logic
-      // await SupabaseService.rejectMent(id, reason);
-      
-      // Remove from pending list
-      setPendingApprovals(prev => prev.filter(a => a.id !== id));
-      console.log('Rejected ment:', id, 'Reason:', reason);
-    } catch (error) {
-      console.error('Error rejecting ment:', error);
-    }
+  const handleReviewSubmission = (submission: any) => {
+    console.log('[PARENT] Opening review for submission:', submission.id);
+    setSelectedSubmission(submission);
+    setShowReviewModal(true);
+  };
+
+  const handleReviewSuccess = () => {
+    console.log('[PARENT] Review completed, refreshing list');
+    fetchPendingSubmissions();
   };
 
   if (showTaskManager) {
@@ -125,11 +101,24 @@ export default function ParentScreen() {
 
       {/* Content */}
       {activeTab === 'approvals' ? (
-        <ParentApprovalQueue
-          pendingApprovals={pendingApprovals}
-          onApprove={handleApprove}
-          onReject={handleReject}
-        />
+        <>
+          <ParentApprovalQueue
+            pendingSubmissions={pendingSubmissions}
+            loading={loading}
+            onReview={handleReviewSubmission}
+            onRefresh={fetchPendingSubmissions}
+          />
+          
+          {selectedSubmission && parentProfile && (
+            <SubmissionReviewModal
+              visible={showReviewModal}
+              onDismiss={() => setShowReviewModal(false)}
+              submission={selectedSubmission}
+              reviewerId={parentProfile.id}
+              onSuccess={handleReviewSuccess}
+            />
+          )}
+        </>
       ) : (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
           <View style={{ 

@@ -515,4 +515,50 @@ export class SupabaseService {
       return null;
     }
   }
+
+  // Approve a submission
+  static async approveSubmission(
+    submissionId: string,
+    rating: number,
+    reviewerId: string,
+    reviewNotes?: string,
+    tipCents?: number
+  ) {
+    try {
+      const { data, error } = await supabase.rpc('approve_submission', {
+        p_submission_id: submissionId,
+        p_rating: rating,
+        p_reviewer_id: reviewerId,
+        p_review_notes: reviewNotes || null,
+        p_tip_cents: tipCents || 0
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error approving submission:', error);
+      return { success: false, error };
+    }
+  }
+
+  // Reject a submission
+  static async rejectSubmission(
+    submissionId: string,
+    reviewerId: string,
+    rejectionReason: string
+  ) {
+    try {
+      const { data, error } = await supabase.rpc('reject_submission', {
+        p_submission_id: submissionId,
+        p_reviewer_id: reviewerId,
+        p_rejection_reason: rejectionReason
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error rejecting submission:', error);
+      return { success: false, error };
+    }
+  }
 }
