@@ -31,13 +31,20 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          height: 65,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 10,
+          backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff',
+          borderTopWidth: 1,
+          borderTopColor: colorScheme === 'dark' ? '#333' : '#e0e0e0',
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: '600',
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginTop: 2,
         },
       }}>
       
@@ -47,29 +54,29 @@ export default function TabLayout() {
           <Tabs.Screen
             name="index"
             options={{
-              title: 'Ments',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="list.bullet.rectangle" color={color} />,
+              title: 'Browse',
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="square.grid.2x2" color={color} />,
+            }}
+          />
+          <Tabs.Screen
+            name="aveya-dashboard"
+            options={{
+              title: 'My Ments',
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.clipboard" color={color} />,
             }}
           />
           <Tabs.Screen
             name="skills"
             options={{
-              title: 'Progress',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="chart.line.uptrend.xyaxis" color={color} />,
-            }}
-          />
-          <Tabs.Screen
-            name="family-chat"
-            options={{
-              title: 'Credits',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="dollarsign.circle.fill" color={color} />,
+              title: 'Stats',
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
             }}
           />
           <Tabs.Screen
             name="inbox"
             options={{
               title: 'Inbox',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="bell.fill" color={color} />,
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="tray.fill" color={color} />,
             }}
           />
         </>
@@ -81,29 +88,29 @@ export default function TabLayout() {
           <Tabs.Screen
             name="parent"
             options={{
-              title: 'Approvals',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="checkmark.circle.fill" color={color} />,
+              title: 'Approve',
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="checkmark.seal.fill" color={color} />,
             }}
           />
           <Tabs.Screen
             name="index"
             options={{
-              title: 'Kids',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="person.2.fill" color={color} />,
+              title: 'Family',
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
             }}
           />
           <Tabs.Screen
             name="family-chat"
             options={{
-              title: 'Credits',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="creditcard.fill" color={color} />,
+              title: 'Payouts',
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="banknote" color={color} />,
             }}
           />
           <Tabs.Screen
             name="inbox"
             options={{
               title: 'Inbox',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="bell.fill" color={color} />,
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="tray.fill" color={color} />,
             }}
           />
         </>
@@ -115,29 +122,29 @@ export default function TabLayout() {
           <Tabs.Screen
             name="issuer-dashboard"
             options={{
-              title: 'Issue',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="plus.circle.fill" color={color} />,
+              title: 'Post',
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="plus.app.fill" color={color} />,
             }}
           />
           <Tabs.Screen
             name="parent"
             options={{
               title: 'Review',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="star.fill" color={color} />,
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="checklist" color={color} />,
             }}
           />
           <Tabs.Screen
             name="family-chat"
             options={{
-              title: 'Favorites',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="heart.fill" color={color} />,
+              title: 'Network',
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.3.fill" color={color} />,
             }}
           />
           <Tabs.Screen
             name="inbox"
             options={{
               title: 'Inbox',
-              tabBarIcon: ({ color }) => <IconSymbol size={26} name="bell.fill" color={color} />,
+              tabBarIcon: ({ color }) => <IconSymbol size={28} name="tray.fill" color={color} />,
             }}
           />
         </>
@@ -147,7 +154,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="aveya-dashboard"
         options={{
-          href: null,
+          href: userRole === 'earner' ? undefined : null,
         }}
       />
       <Tabs.Screen
