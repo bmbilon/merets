@@ -6,7 +6,7 @@ import TaskMallAdmin from "@/components/TaskMallAdmin";
 import { SupabaseService } from '../../lib/supabase-service';
 
 export default function ParentScreen() {
-  const [activeTab, setActiveTab] = useState<'approvals' | 'tasks'>('approvals');
+  const [activeTab, setActiveTab] = useState<'approvals' | 'tasks'>('tasks');
   const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
   const [showTaskManager, setShowTaskManager] = useState(false);
 
