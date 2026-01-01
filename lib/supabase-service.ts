@@ -473,7 +473,7 @@ export class SupabaseService {
             user:user_profiles!commitments_user_id_fkey(*)
           )
         `)
-        .eq('status', 'pending_approval')
+        .eq('submission_status', 'pending_approval')
         .order('submitted_at', { ascending: true });
 
       if (error) throw error;
