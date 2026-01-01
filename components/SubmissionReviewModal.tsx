@@ -3,6 +3,7 @@ import { View, Image, ScrollView, Alert, Dimensions } from 'react-native';
 import { Modal, Portal, Text, Button, TextInput, Chip, Divider } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SupabaseService } from '../lib/supabase-service';
+import CelebrationModal from './CelebrationModal';
 
 interface SubmissionReviewModalProps {
   visible: boolean;
@@ -25,6 +26,8 @@ export default function SubmissionReviewModal({
   const [processing, setProcessing] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectForm, setShowRejectForm] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationData, setCelebrationData] = useState<any>(null);
 
   const screenWidth = Dimensions.get('window').width;
   const imageWidth = (screenWidth - 80) / 3; // 3 images with padding
@@ -57,20 +60,22 @@ export default function SubmissionReviewModal({
         const tipEarned = result.tip_amount || 0;
         const totalEarned = result.total_earned || 0;
 
-        Alert.alert(
-          '✅ Approved!',
-          `${submission.commitment?.user?.name || 'Kid'} earned:\n\n` +
-          `💰 $${totalEarned.toFixed(2)} (${creditsEarned > 0 ? `$${creditsEarned.toFixed(2)} base` : ''}${tipEarned > 0 ? ` + $${tipEarned.toFixed(2)} tip` : ''})\n` +
-          `⭐ ${xpEarned} XP\n` +
-          `${rating === 5 ? '🎉 Perfect work!' : rating === 4 ? '👍 Great job!' : rating === 3 ? '✓ Good work' : ''}`,
-          [{ 
-            text: 'OK', 
-            onPress: () => {
-              onDismiss();
-              onSuccess();
-            }
-          }]
-        );
+        // Show celebration modal instead of alert
+        setCelebrationData({
+          title: rating === 5 ? 'Perfect Work!' : rating === 4 ? 'Great Job!' : 'Well Done!',
+          subtitle: `${submission.commitment?.user?.name || 'Kid'} completed: ${task.title || 'Task'}`,
+          xpEarned,
+          creditsEarned,
+          tipAmount: tipEarned,
+          totalEarned
+        });
+        setShowCelebration(true);
+        
+        // Dismiss after celebration
+        setTimeout(() => {
+          onDismiss();
+          onSuccess();
+        }, 4000);
       } else {
         throw new Error('Approval failed');
       }
@@ -384,6 +389,20 @@ export default function SubmissionReviewModal({
           )}
         </ScrollView>
       </Modal>
+
+      {/* Celebration Modal */}
+      {celebrationData && (
+        <CelebrationModal
+          visible={showCelebration}
+          onDismiss={() => {
+            setShowCelebration(false);
+            onDismiss();
+            onSuccess();
+          }}
+          type="approval"
+          data={celebrationData}
+        />
+      )}
     </Portal>
   );
 }
