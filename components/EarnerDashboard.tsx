@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { Surface, Text, ProgressBar, Chip, Avatar, Divider } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -11,6 +11,7 @@ interface EarnerDashboardProps {
   totalCredits: number;
   activeMents: number;
   completedMents: number;
+  userId?: string; // Add userId to fetch active commitments
 }
 
 export default function EarnerDashboard({
@@ -20,10 +21,34 @@ export default function EarnerDashboard({
   totalMerets,
   totalCredits,
   activeMents,
-  completedMents
+  completedMents,
+  userId
 }: EarnerDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'active' | 'history'>('overview');
+  const [activeCommitments, setActiveCommitments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const screenWidth = Dimensions.get('window').width;
+
+  useEffect(() => {
+    if (userId && activeTab === 'active') {
+      fetchActiveCommitments();
+    }
+  }, [userId, activeTab]);
+
+  const fetchActiveCommitments = async () => {
+    if (!userId) return;
+    try {
+      setLoading(true);
+      // Import SupabaseService dynamically to avoid circular dependencies
+      const { SupabaseService } = await import('@/lib/supabase-service');
+      const commitments = await SupabaseService.getUserCommitments(userId, 'in_progress');
+      setActiveCommitments(commitments);
+    } catch (error) {
+      console.error('Error fetching active commitments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const repLevel = Math.floor(rep / 20); // 0-5 levels
   const repProgress = (rep % 20) / 20;
@@ -222,9 +247,21 @@ export default function EarnerDashboard({
         {activeTab === 'active' && (
           <View>
             <Text variant="titleLarge" style={{ fontWeight: 'bold', marginBottom: 16 }}>
-              Active Ments ({activeMents})
+              Active Ments ({activeCommitments.length})
             </Text>
-            {activeMents === 0 ? (
+            {loading ? (
+              <Surface style={{ 
+                borderRadius: 16,
+                padding: 32,
+                backgroundColor: '#fff',
+                elevation: 2,
+                alignItems: 'center'
+              }}>
+                <Text variant="bodyMedium" style={{ color: '#666' }}>
+                  Loading...
+                </Text>
+              </Surface>
+            ) : activeCommitments.length === 0 ? (
               <Surface style={{ 
                 borderRadius: 16,
                 padding: 32,
@@ -241,7 +278,38 @@ export default function EarnerDashboard({
                 </Text>
               </Surface>
             ) : (
-              <Text>Active ments list</Text>
+              <View style={{ gap: 12 }}>
+                {activeCommitments.map((commitment) => (
+                  <Surface key={commitment.id} style={{ 
+                    borderRadius: 16,
+                    padding: 16,
+                    backgroundColor: '#fff',
+                    elevation: 2,
+                    borderLeftWidth: 4,
+                    borderLeftColor: '#4CAF50'
+                  }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                      <View style={{ flex: 1 }}>
+                        <Text variant="titleMedium" style={{ fontWeight: 'bold', marginBottom: 4 }}>
+                          {commitment.custom_title || 'Task'}
+                        </Text>
+                        <Text variant="bodySmall" style={{ color: '#666' }}>
+                          {commitment.skill_category} • {commitment.effort_minutes} min
+                        </Text>
+                      </View>
+                      <Chip compact style={{ backgroundColor: '#E8F5E9' }}>
+                        <Text style={{ color: '#2E7D32', fontWeight: '600', fontSize: 11 }}>In Progress</Text>
+                      </Chip>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 }}>
+                      <IconSymbol size={16} name="dollarsign.circle.fill" color="#4CAF50" />
+                      <Text variant="bodyMedium" style={{ fontWeight: '600', color: '#4CAF50' }}>
+                        ${(commitment.pay_cents / 100).toFixed(2)}
+                      </Text>
+                    </View>
+                  </Surface>
+                ))}
+              </View>
             )}
           </View>
         )}

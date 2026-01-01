@@ -15,6 +15,7 @@ export default function AveyaDashboard({ onSwitchUser }: AveyaDashboardProps) {
   const [activeMents, setActiveMents] = useState(0);
   const [completedMents, setCompletedMents] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
     loadUserStats();
@@ -28,6 +29,9 @@ export default function AveyaDashboard({ onSwitchUser }: AveyaDashboardProps) {
       const userProfile = await SupabaseService.getUserByName('Aveya');
       
       if (userProfile) {
+        // Store user profile
+        setUserProfile(userProfile);
+        
         // Set rep and total earnings
         setRep(userProfile.total_xp || 0);
         setTotalCredits((userProfile.total_earnings_cents || 0) / 100); // Convert cents to dollars
@@ -78,6 +82,7 @@ export default function AveyaDashboard({ onSwitchUser }: AveyaDashboardProps) {
       totalCredits={totalCredits}
       activeMents={activeMents}
       completedMents={completedMents}
+      userId={userProfile?.id}
     />
   );
 }
