@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -8,6 +8,7 @@ import {
 } from "react-native-paper";
 import MentsMarketplace from "@/components/MentsMarketplace";
 import MentDetailModal from "@/components/MentDetailModal";
+import { supabase } from "@/lib/supabase";
 
 export default function MainApp() {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -71,44 +72,65 @@ export default function MainApp() {
 function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: string; userColor: string; onSwitchUser: () => void }) {
   const [selectedMent, setSelectedMent] = useState<any>(null);
   const [showDetail, setShowDetail] = useState(false);
+  const [ments, setMents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for now - will be replaced with Supabase queries
-  const mockMents = [
-    {
-      id: '1',
-      title: 'Clean the garage',
-      description: 'Sweep, organize tools, take out trash',
-      category: 'Chores',
-      credits: 15,
-      timeEstimate: '1 hour',
-      dueDate: 'Tomorrow',
-      difficulty: 'medium' as const,
-      approvalRequired: true,
-      issuerName: 'Dad',
-      issuerTrust: 'Family',
-      issuerRep: 100
-    },
-    {
-      id: '2',
-      title: 'Walk the dog',
-      description: '30 minute walk around the neighborhood',
-      category: 'Pet Care',
-      credits: 8,
-      timeEstimate: '30 min',
-      dueDate: 'Today',
-      difficulty: 'easy' as const,
-      approvalRequired: false,
-      issuerName: 'Mom',
-      issuerTrust: 'Family',
-      issuerRep: 100
+  // Fetch tasks from Supabase
+  useEffect(() => {
+    fetchMents();
+  }, []);
+
+  const fetchMents = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('task_templates')
+        .select('*')
+        .order('skill_category', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching ments:', error);
+        return;
+      }
+
+      // Transform Supabase data to match component format
+      const transformedMents = data?.map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description || '',
+        category: task.skill_category,
+        credits: task.base_pay_cents / 100, // Convert cents to dollars
+        timeEstimate: `${task.effort_minutes} min`,
+        dueDate: 'Available now',
+        difficulty: task.difficulty_level === 1 ? 'easy' : task.difficulty_level === 2 ? 'medium' : 'hard',
+        approvalRequired: false,
+        issuerName: 'Family',
+        issuerTrust: 'Family',
+        issuerRep: 100,
+        status: task.is_micro_task ? 'quick' : 'available'
+      })) || [];
+
+      setMents(transformedMents);
+    } catch (error) {
+      console.error('Error in fetchMents:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const handleCommit = (mentId: string) => {
     console.log('Committed to ment:', mentId);
     setShowDetail(false);
-    // TODO: Integrate with Supabase
+    // TODO: Create commitment in Supabase
   };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading ments...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -122,16 +144,13 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
       <MentsMarketplace 
         userName={userName}
         userColor={userColor}
-        ments={mockMents}
+        ments={ments}
         activeMents={[]}
         onMentPress={(ment) => {
           setSelectedMent(ment);
           setShowDetail(true);
         }}
-        onRefresh={() => {
-          console.log('Refreshing ments...');
-          // TODO: Fetch from Supabase
-        }}
+        onRefresh={fetchMents}
       />
       <MentDetailModal
         visible={showDetail}
