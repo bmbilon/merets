@@ -78,6 +78,7 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
 
   // Fetch tasks from Supabase
   useEffect(() => {
+    console.log('[MOUNT] EarnerMarketplace mounted for:', userName);
     fetchMents();
   }, []);
 
@@ -109,21 +110,30 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
       }
 
       // Transform Supabase data to match component format
-      const transformedMents = data.map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || '',
-        category: task.skill_category,
-        credits: task.base_pay_cents / 100, // Convert cents to dollars
-        timeEstimate: `${task.effort_minutes} min`,
-        dueDate: 'Available now',
-        difficulty: task.difficulty_level === 1 ? 'easy' : task.difficulty_level === 2 ? 'medium' : 'hard',
-        approvalRequired: false,
-        issuerName: 'Family',
-        issuerTrust: 'Family',
-        issuerRep: 100,
-        status: task.is_micro_task ? 'quick' : 'available'
-      }));
+      const transformedMents = data.map(task => {
+        // Determine status based on task properties
+        let status: 'available' | 'quick' | 'recommended' = 'available';
+        if (task.is_micro_task && task.effort_minutes <= 5) {
+          status = 'quick';
+        }
+        // Could add logic for 'recommended' based on user preferences later
+        
+        return {
+          id: task.id,
+          title: task.title,
+          description: task.description || '',
+          category: task.skill_category,
+          credits: task.base_pay_cents / 100, // Convert cents to dollars
+          timeEstimate: `${task.effort_minutes} min`,
+          dueDate: 'Available now',
+          difficulty: task.difficulty_level === 1 ? 'easy' : task.difficulty_level === 2 ? 'medium' : 'hard',
+          approvalRequired: false,
+          issuerName: 'Family',
+          issuerTrust: 'Family',
+          issuerRep: 100,
+          status: status
+        };
+      });
 
       console.log('[SUCCESS] Transformed', transformedMents.length, 'ments');
       console.log('[SUCCESS] First ment:', transformedMents[0]);
