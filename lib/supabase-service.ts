@@ -496,7 +496,7 @@ export class SupabaseService {
       
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
-        .from('task-photos')
+        .from('commitment-photos')
         .upload(filename, blob, {
           contentType: 'image/jpeg',
           cacheControl: '3600'
@@ -506,7 +506,7 @@ export class SupabaseService {
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('task-photos')
+        .from('commitment-photos')
         .getPublicUrl(filename);
 
       return publicUrl;
