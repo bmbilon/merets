@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { View } from "react-native";
+import { View, Text } from "react-native";
 import EarnerDashboard from "@/components/EarnerDashboard";
 import { SupabaseService } from '../../lib/supabase-service';
+import { supabase } from '@/lib/supabase';
 
 interface AveyaDashboardProps {
   onSwitchUser: () => void;
 }
 
 export default function AveyaDashboard({ onSwitchUser }: AveyaDashboardProps) {
-  const [rep, setRep] = useState(75);
-  const [totalMerets, setTotalMerets] = useState(150);
-  const [totalCredits, setTotalCredits] = useState(245);
-  const [activeMents, setActiveMents] = useState(3);
-  const [completedMents, setCompletedMents] = useState(12);
+  const [rep, setRep] = useState(0);
+  const [totalMerets, setTotalMerets] = useState(0);
+  const [totalCredits, setTotalCredits] = useState(0);
+  const [activeMents, setActiveMents] = useState(0);
+  const [completedMents, setCompletedMents] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadUserStats();
@@ -20,17 +22,52 @@ export default function AveyaDashboard({ onSwitchUser }: AveyaDashboardProps) {
 
   const loadUserStats = async () => {
     try {
-      // TODO: Replace with actual Supabase queries
-      // const stats = await SupabaseService.getUserStats('aveya');
-      // setRep(stats.rep);
-      // setTotalMerets(stats.totalMerets);
-      // setTotalCredits(stats.totalCredits);
-      // setActiveMents(stats.activeMents);
-      // setCompletedMents(stats.completedMents);
+      setLoading(true);
+      
+      // Get user profile by name
+      const userProfile = await SupabaseService.getUserByName('Aveya');
+      
+      if (userProfile) {
+        // Set rep and total earnings
+        setRep(userProfile.total_xp || 0);
+        setTotalCredits((userProfile.total_earnings_cents || 0) / 100); // Convert cents to dollars
+        
+        // Get active commitments count
+        const activeCommitments = await SupabaseService.getUserCommitments(
+          userProfile.id,
+          'in_progress'
+        );
+        setActiveMents(activeCommitments.length);
+        
+        // Get completed commitments count
+        const { data: completedData, error: completedError } = await supabase
+          .from('commitments')
+          .select('id', { count: 'exact' })
+          .eq('user_id', userProfile.id)
+          .eq('status', 'completed');
+        
+        if (!completedError && completedData) {
+          setCompletedMents(completedData.length);
+        }
+        
+        // Calculate total merets (could be based on a formula)
+        // For now, using XP as merets
+        setTotalMerets(userProfile.total_xp || 0);
+      }
     } catch (error) {
       console.error('Error loading user stats:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <EarnerDashboard
