@@ -3,6 +3,8 @@ import { View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { Surface, Text, ProgressBar, Chip, Avatar, Divider, Button } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import SubmitWorkModal from './SubmitWorkModal';
+import AnimatedProgressBar from './AnimatedProgressBar';
+import StreakDisplay from './StreakDisplay';
 
 interface EarnerDashboardProps {
   userName: string;
@@ -12,7 +14,9 @@ interface EarnerDashboardProps {
   totalCredits: number;
   activeMents: number;
   completedMents: number;
-  userId?: string; // Add userId to fetch active commitments
+  userId?: string;
+  currentStreak?: number;
+  longestStreak?: number;
 }
 
 export default function EarnerDashboard({
@@ -23,7 +27,9 @@ export default function EarnerDashboard({
   totalCredits,
   activeMents,
   completedMents,
-  userId
+  userId,
+  currentStreak = 0,
+  longestStreak = 0
 }: EarnerDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'active' | 'history'>('overview');
   const [activeCommitments, setActiveCommitments] = useState<any[]>([]);
@@ -56,6 +62,11 @@ export default function EarnerDashboard({
   const repLevel = Math.floor(rep / 20); // 0-5 levels
   const repProgress = (rep % 20) / 20;
   const repLabels = ['Newcomer', 'Learner', 'Contributor', 'Reliable', 'Trusted', 'Elite'];
+  
+  // Calculate level from XP (100 XP per level)
+  const level = Math.floor(rep / 100) + 1;
+  const xpInCurrentLevel = rep % 100;
+  const xpForNextLevel = 100;
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
@@ -150,6 +161,32 @@ export default function EarnerDashboard({
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
         {activeTab === 'overview' && (
           <>
+            {/* Progress Bar */}
+            <Surface style={{ 
+              borderRadius: 16, 
+              padding: 16, 
+              backgroundColor: '#fff',
+              elevation: 2,
+              marginBottom: 16
+            }}>
+              <AnimatedProgressBar
+                currentXP={xpInCurrentLevel}
+                maxXP={xpForNextLevel}
+                level={level}
+                color="#9C27B0"
+                showLabel={true}
+              />
+            </Surface>
+
+            {/* Streak Display */}
+            <View style={{ marginBottom: 16 }}>
+              <StreakDisplay
+                currentStreak={currentStreak}
+                longestStreak={longestStreak}
+                compact={false}
+              />
+            </View>
+
             {/* Stats Grid */}
             <View style={{ 
               flexDirection: 'row',

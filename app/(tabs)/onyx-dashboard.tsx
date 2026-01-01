@@ -83,6 +83,8 @@ export default function OnyxDashboard({ onSwitchUser }: OnyxDashboardProps) {
       activeMents={activeMents}
       completedMents={completedMents}
       userId={userProfile?.id}
+      currentStreak={userProfile?.current_streak || 0}
+      longestStreak={userProfile?.longest_streak || 0}
     />
   );
 }
