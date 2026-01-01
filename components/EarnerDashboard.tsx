@@ -5,6 +5,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import SubmitWorkModal from './SubmitWorkModal';
 import AnimatedProgressBar from './AnimatedProgressBar';
 import StreakDisplay from './StreakDisplay';
+import Leaderboard from './Leaderboard';
 
 interface EarnerDashboardProps {
   userName: string;
@@ -265,21 +266,9 @@ export default function EarnerDashboard({
               )}
             </View>
 
-            {/* Recent Activity */}
+            {/* Leaderboard */}
             <View>
-              <Text variant="titleMedium" style={{ fontWeight: 'bold', marginBottom: 12 }}>
-                Recent Activity
-              </Text>
-              <Surface style={{ 
-                borderRadius: 16,
-                padding: 16,
-                backgroundColor: '#fff',
-                elevation: 2
-              }}>
-                <Text variant="bodyMedium" style={{ color: '#666' }}>
-                  Activity timeline would go here
-                </Text>
-              </Surface>
+              <Leaderboard currentUserId={userId} compact={true} />
             </View>
           </>
         )}
