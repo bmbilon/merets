@@ -469,7 +469,7 @@ export class SupabaseService {
           *,
           commitment:commitments(
             *,
-            task:task_templates(*),
+            task:task_templates!commitments_task_template_id_fkey(*),
             user:user_profiles(*)
           )
         `)
