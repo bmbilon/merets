@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View } from "react-native";
+import { View, ScrollView } from "react-native";
+import { Text, Button, SegmentedButtons, FAB } from "react-native-paper";
 import ParentApprovalQueue from "@/components/ParentApprovalQueue";
+import TaskMallAdmin from "@/components/TaskMallAdmin";
 import { SupabaseService } from '../../lib/supabase-service';
 
 export default function ParentScreen() {
+  const [activeTab, setActiveTab] = useState<'approvals' | 'tasks'>('approvals');
   const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+  const [showTaskManager, setShowTaskManager] = useState(false);
 
   useEffect(() => {
     loadPendingApprovals();
@@ -77,11 +81,96 @@ export default function ParentScreen() {
     }
   };
 
+  if (showTaskManager) {
+    return (
+      <TaskMallAdmin 
+        onClose={() => setShowTaskManager(false)}
+      />
+    );
+  }
+
   return (
-    <ParentApprovalQueue
-      pendingApprovals={pendingApprovals}
-      onApprove={handleApprove}
-      onReject={handleReject}
-    />
+    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+      {/* Header */}
+      <View style={{ 
+        backgroundColor: '#fff',
+        paddingTop: 60,
+        paddingBottom: 16,
+        paddingHorizontal: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0'
+      }}>
+        <Text variant="headlineMedium" style={{ fontWeight: 'bold', marginBottom: 16 }}>
+          Parent Dashboard
+        </Text>
+        
+        {/* Tab Selector */}
+        <SegmentedButtons
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as 'approvals' | 'tasks')}
+          buttons={[
+            {
+              value: 'approvals',
+              label: 'Approvals',
+              icon: 'check-circle-outline'
+            },
+            {
+              value: 'tasks',
+              label: 'Task Manager',
+              icon: 'format-list-bulleted'
+            }
+          ]}
+        />
+      </View>
+
+      {/* Content */}
+      {activeTab === 'approvals' ? (
+        <ParentApprovalQueue
+          pendingApprovals={pendingApprovals}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
+      ) : (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
+          <View style={{ 
+            backgroundColor: '#fff',
+            borderRadius: 16,
+            padding: 24,
+            alignItems: 'center',
+            marginBottom: 16
+          }}>
+            <Text variant="titleLarge" style={{ fontWeight: 'bold', marginBottom: 8 }}>
+              Task Manager
+            </Text>
+            <Text variant="bodyMedium" style={{ color: '#666', textAlign: 'center', marginBottom: 16 }}>
+              Create, edit, and manage household tasks for your kids
+            </Text>
+            <Button 
+              mode="contained" 
+              onPress={() => setShowTaskManager(true)}
+              icon="plus"
+              style={{ borderRadius: 12 }}
+            >
+              Open Task Manager
+            </Button>
+          </View>
+        </ScrollView>
+      )}
+
+      {/* FAB for quick access to task manager */}
+      {activeTab === 'approvals' && (
+        <FAB
+          icon="plus"
+          style={{
+            position: 'absolute',
+            margin: 16,
+            right: 0,
+            bottom: 0,
+            backgroundColor: '#2196F3'
+          }}
+          onPress={() => setShowTaskManager(true)}
+        />
+      )}
+    </View>
   );
 }
