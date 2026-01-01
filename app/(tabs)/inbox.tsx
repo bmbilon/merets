@@ -1,120 +1,183 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, RefreshControl, StyleSheet } from 'react-native';
+import { View, ScrollView, RefreshControl, StyleSheet, Alert } from 'react-native';
 import { Card, Text, Button, Chip, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-// Notification types
-type NotificationType = 
-  | 'approval_requested'
-  | 'approval_granted' 
-  | 'approval_denied'
-  | 'redo_requested'
-  | 'review_received'
-  | 'ment_overdue'
-  | 'tip_received';
-
-type Notification = {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  actionable?: {
-    label: string;
-    onPress: () => void;
-  };
-  mentId?: string;
-};
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NotificationService, Notification } from '../../lib/notification-service';
+import { SupabaseService } from '../../lib/supabase-service';
+import ParentalApprovalModal from '../../components/ParentalApprovalModal';
+import LoadingState from '../../components/LoadingState';
 
 export default function InboxScreen() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
-
-  // TODO: Replace with actual data from Supabase
-  const loadNotifications = async () => {
-    // Placeholder data - will connect to real notifications later
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'review_received',
-        title: '⭐ Work Rated',
-        message: 'Your "Clean bedroom" ment was rated 5 stars!',
-        timestamp: new Date().toISOString(),
-        read: false,
-        actionable: {
-          label: 'View Details',
-          onPress: () => console.log('View review details')
-        }
-      },
-      {
-        id: '2',
-        type: 'approval_granted',
-        title: '✅ Ment Approved',
-        message: 'Your "Study for math test" ment was approved by Mom',
-        timestamp: new Date(Date.now() - 3600000).toISOString(),
-        read: false,
-      },
-      {
-        id: '3',
-        type: 'redo_requested',
-        title: '🔄 Redo Requested',
-        message: 'Dad requested improvements on "Organize garage"',
-        timestamp: new Date(Date.now() - 7200000).toISOString(),
-        read: true,
-        actionable: {
-          label: 'View Feedback',
-          onPress: () => console.log('View redo feedback')
-        }
-      },
-    ];
-    setNotifications(mockNotifications);
-  };
+  const [userId, setUserId] = useState<string>('');
+  
+  // Parental approval modal state
+  const [approvalModalVisible, setApprovalModalVisible] = useState(false);
+  const [selectedApproval, setSelectedApproval] = useState<any>(null);
 
   useEffect(() => {
-    loadNotifications();
+    loadUserAndNotifications();
   }, []);
+
+  const loadUserAndNotifications = async () => {
+    try {
+      const selectedUser = await AsyncStorage.getItem('selected_user');
+      if (!selectedUser) return;
+
+      const userProfile = await SupabaseService.getUserByName(selectedUser);
+      if (!userProfile) return;
+
+      setUserId(userProfile.id);
+      await loadNotifications(userProfile.id);
+    } catch (error) {
+      console.error('[INBOX] Error loading user:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadNotifications = async (uid: string) => {
+    try {
+      const data = await NotificationService.getNotifications(uid, false);
+      setNotifications(data);
+    } catch (error) {
+      console.error('[INBOX] Error loading notifications:', error);
+    }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadNotifications();
+    await loadNotifications(userId);
     setRefreshing(false);
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
+  const markAsRead = async (notification: Notification) => {
+    if (!notification.read) {
+      await NotificationService.markAsRead(notification.id);
+      setNotifications(prev =>
+        prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
+      );
+    }
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
+    await NotificationService.markAllAsRead(userId);
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
-  const getNotificationIcon = (type: NotificationType) => {
-    switch (type) {
-      case 'approval_requested': return '⏳';
-      case 'approval_granted': return '✅';
-      case 'approval_denied': return '❌';
-      case 'redo_requested': return '🔄';
-      case 'review_received': return '⭐';
-      case 'ment_overdue': return '⏰';
-      case 'tip_received': return '💰';
-      default: return '📬';
+  const handleNotificationAction = async (notification: Notification) => {
+    // Mark as read
+    await markAsRead(notification);
+
+    // Handle action based on type
+    switch (notification.action_type) {
+      case 'approve_external_task':
+        // Load commitment details and show approval modal
+        const commitmentId = notification.action_data?.commitment_id;
+        if (commitmentId) {
+          try {
+            const { data: commitment } = await SupabaseService.getSupabaseClient()
+              .from('commitments')
+              .select(`
+                *,
+                task_templates (title, description, base_pay_cents, effort_minutes),
+                user_profiles!commitments_user_id_fkey (name),
+                issuer:user_profiles!commitments_issuer_id_fkey (name)
+              `)
+              .eq('id', commitmentId)
+              .single();
+
+            if (commitment) {
+              setSelectedApproval({
+                commitmentId: commitment.id,
+                taskTitle: commitment.task_templates.title,
+                taskDescription: commitment.task_templates.description,
+                issuerName: commitment.issuer.name,
+                earnerName: commitment.user_profiles.name,
+                payAmount: commitment.task_templates.base_pay_cents / 100,
+                timeEstimate: `${commitment.task_templates.effort_minutes} min`,
+              });
+              setApprovalModalVisible(true);
+            }
+          } catch (error) {
+            console.error('[INBOX] Error loading commitment:', error);
+            Alert.alert('Error', 'Could not load task details');
+          }
+        }
+        break;
+
+      case 'view_submission':
+        // Navigate to approval queue
+        router.push('/parent');
+        break;
+
+      case 'view_commitment':
+        // Navigate to my ments
+        router.push('/aveya-dashboard');
+        break;
+
+      case 'view_rating':
+        // Navigate to stats/history
+        router.push('/skills');
+        break;
+
+      default:
+        // Just mark as read
+        break;
     }
   };
 
-  const getNotificationColor = (type: NotificationType) => {
-    switch (type) {
-      case 'approval_granted': return '#4CAF50';
-      case 'approval_denied': return '#F44336';
-      case 'redo_requested': return '#FF9800';
-      case 'review_received': return '#E91E63';
-      case 'ment_overdue': return '#F44336';
-      case 'tip_received': return '#FFD700';
-      default: return '#2196F3';
-    }
+  const getNotificationIcon = (type: string) => {
+    const icons: Record<string, string> = {
+      task_committed: '✅',
+      external_task_pending_approval: '⏳',
+      external_task_approved: '✅',
+      external_task_denied: '❌',
+      work_approved: '🎉',
+      work_rejected: '❌',
+      payment_received: '💰',
+      meret_earned: '🏆',
+      rework_requested: '🔄',
+      rating_received: '⭐',
+      child_committed_external_task: '🔔',
+      child_submitted_work: '📋',
+      approval_needed: '⏳',
+      work_submitted: '📸',
+      commitment_made: '👤',
+    };
+    return icons[type] || '📬';
+  };
+
+  const getNotificationColor = (type: string) => {
+    const colors: Record<string, string> = {
+      work_approved: '#4CAF50',
+      external_task_approved: '#4CAF50',
+      work_rejected: '#F44336',
+      external_task_denied: '#F44336',
+      rework_requested: '#FF9800',
+      rating_received: '#E91E63',
+      payment_received: '#FFD700',
+      meret_earned: '#FFD700',
+      child_committed_external_task: '#FF9800',
+      approval_needed: '#FF9800',
+    };
+    return colors[type] || '#2196F3';
+  };
+
+  const getPriorityColor = (priority: string) => {
+    const colors: Record<string, string> = {
+      urgent: '#F44336',
+      high: '#FF9800',
+      normal: '#2196F3',
+      low: '#9E9E9E',
+    };
+    return colors[priority] || '#2196F3';
   };
 
   const filteredNotifications = filter === 'unread' 
@@ -122,6 +185,10 @@ export default function InboxScreen() {
     : notifications;
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  if (loading) {
+    return <LoadingState message="Loading notifications..." />;
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -186,20 +253,21 @@ export default function InboxScreen() {
             </Text>
           </View>
         ) : (
-          filteredNotifications.map((notification, index) => (
+          filteredNotifications.map((notification) => (
             <Card
               key={notification.id}
               style={[
                 styles.notificationCard,
-                !notification.read && styles.unreadCard
+                !notification.read && styles.unreadCard,
+                notification.priority === 'urgent' && styles.urgentCard
               ]}
-              onPress={() => !notification.read && markAsRead(notification.id)}
+              onPress={() => handleNotificationAction(notification)}
             >
               <Card.Content>
                 <View style={styles.cardHeader}>
                   <View style={styles.titleRow}>
                     <Text style={styles.notificationIcon}>
-                      {getNotificationIcon(notification.type)}
+                      {getNotificationIcon(notification.notification_type)}
                     </Text>
                     <Text
                       variant="titleMedium"
@@ -214,7 +282,7 @@ export default function InboxScreen() {
                   {!notification.read && (
                     <View style={[
                       styles.unreadDot,
-                      { backgroundColor: getNotificationColor(notification.type) }
+                      { backgroundColor: getNotificationColor(notification.notification_type) }
                     ]} />
                   )}
                 </View>
@@ -223,27 +291,45 @@ export default function InboxScreen() {
                   {notification.message}
                 </Text>
 
-                <Text variant="bodySmall" style={styles.timestamp}>
-                  {new Date(notification.timestamp).toLocaleString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit'
-                  })}
-                </Text>
+                <View style={styles.metaRow}>
+                  <Text variant="bodySmall" style={styles.timestamp}>
+                    {new Date(notification.created_at).toLocaleString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit'
+                    })}
+                  </Text>
+                  {notification.priority !== 'normal' && (
+                    <Chip
+                      style={[
+                        styles.priorityChip,
+                        { backgroundColor: getPriorityColor(notification.priority) + '20' }
+                      ]}
+                      textStyle={{ color: getPriorityColor(notification.priority), fontSize: 10 }}
+                    >
+                      {notification.priority.toUpperCase()}
+                    </Chip>
+                  )}
+                </View>
 
-                {notification.actionable && (
+                {notification.action_type && notification.action_type !== 'none' && (
                   <>
                     <Divider style={styles.actionDivider} />
                     <Button
                       mode="contained"
-                      onPress={notification.actionable.onPress}
+                      onPress={() => handleNotificationAction(notification)}
                       style={[
                         styles.actionButton,
-                        { backgroundColor: getNotificationColor(notification.type) }
+                        { backgroundColor: getNotificationColor(notification.notification_type) }
                       ]}
+                      compact
                     >
-                      {notification.actionable.label}
+                      {notification.action_type === 'approve_external_task' && 'Review & Approve'}
+                      {notification.action_type === 'view_submission' && 'View Submission'}
+                      {notification.action_type === 'view_commitment' && 'View Task'}
+                      {notification.action_type === 'view_rating' && 'View Rating'}
+                      {notification.action_type === 'view_dispute' && 'View Dispute'}
                     </Button>
                   </>
                 )}
@@ -252,6 +338,33 @@ export default function InboxScreen() {
           ))
         )}
       </ScrollView>
+
+      {/* Parental Approval Modal */}
+      {selectedApproval && (
+        <ParentalApprovalModal
+          visible={approvalModalVisible}
+          onDismiss={() => {
+            setApprovalModalVisible(false);
+            setSelectedApproval(null);
+          }}
+          commitmentId={selectedApproval.commitmentId}
+          taskTitle={selectedApproval.taskTitle}
+          taskDescription={selectedApproval.taskDescription}
+          issuerName={selectedApproval.issuerName}
+          earnerName={selectedApproval.earnerName}
+          payAmount={selectedApproval.payAmount}
+          timeEstimate={selectedApproval.timeEstimate}
+          parentId={userId}
+          onApproved={() => {
+            Alert.alert('Approved', 'Task has been approved. Your child can now proceed.');
+            onRefresh();
+          }}
+          onDenied={() => {
+            Alert.alert('Denied', 'Task has been denied. Your child has been notified.');
+            onRefresh();
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -319,6 +432,10 @@ const styles = StyleSheet.create({
     borderLeftColor: '#E91E63',
     elevation: 4,
   },
+  urgentCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#F44336',
+  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -350,8 +467,16 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 8,
   },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   timestamp: {
     color: '#999',
+  },
+  priorityChip: {
+    height: 20,
   },
   actionDivider: {
     marginVertical: 12,
