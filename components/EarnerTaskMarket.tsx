@@ -362,8 +362,8 @@ export default function EarnerTaskMarket({
             selected={groupBy === 'category'}
             onPress={() => setGroupBy('category')}
             compact
-            style={{ height: 28, backgroundColor: groupBy === 'category' ? '#6200ee' : '#f5f5f5' }}
-            textStyle={{ fontSize: 11, color: groupBy === 'category' ? '#fff' : '#666' }}
+            style={{ height: 32, backgroundColor: groupBy === 'category' ? '#6200ee' : '#f5f5f5' }}
+            textStyle={{ fontSize: 12, color: groupBy === 'category' ? '#fff' : '#666', lineHeight: 16 }}
           >
             Category
           </Chip>
@@ -371,8 +371,8 @@ export default function EarnerTaskMarket({
             selected={groupBy === 'pay'}
             onPress={() => setGroupBy('pay')}
             compact
-            style={{ height: 28, backgroundColor: groupBy === 'pay' ? '#6200ee' : '#f5f5f5' }}
-            textStyle={{ fontSize: 11, color: groupBy === 'pay' ? '#fff' : '#666' }}
+            style={{ height: 32, backgroundColor: groupBy === 'pay' ? '#6200ee' : '#f5f5f5' }}
+            textStyle={{ fontSize: 12, color: groupBy === 'pay' ? '#fff' : '#666', lineHeight: 16 }}
           >
             Pay
           </Chip>
@@ -380,8 +380,8 @@ export default function EarnerTaskMarket({
             selected={groupBy === 'none'}
             onPress={() => setGroupBy('none')}
             compact
-            style={{ height: 28, backgroundColor: groupBy === 'none' ? '#6200ee' : '#f5f5f5' }}
-            textStyle={{ fontSize: 11, color: groupBy === 'none' ? '#fff' : '#666' }}
+            style={{ height: 32, backgroundColor: groupBy === 'none' ? '#6200ee' : '#f5f5f5' }}
+            textStyle={{ fontSize: 12, color: groupBy === 'none' ? '#fff' : '#666', lineHeight: 16 }}
           >
             All
           </Chip>
