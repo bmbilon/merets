@@ -8,7 +8,7 @@ import {
 } from "react-native-paper";
 import EarnerTaskMarket from "@/components/EarnerTaskMarket";
 import MentDetailModal from "@/components/MentDetailModal";
-import CommitmentCelebration from "@/components/CommitmentCelebration";
+import EnhancedCelebration from "@/components/EnhancedCelebration";
 import { supabase } from "@/lib/supabase";
 import { SupabaseService } from "@/lib/supabase-service";
 
@@ -77,6 +77,85 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
   const [ments, setMents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationData, setCelebrationData] = useState({ earnedAmount: 0, earnedXP: 0, leveledUp: false, newLevel: 1, taskTitle: '' });
+  const [userStats, setUserStats] = useState({ totalEarnings: 0, currentStreak: 0, totalXP: 0, level: 1 });
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Fetch user profile and stats
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('id, total_earnings_cents, total_xp')
+          .eq('name', userName)
+          .single();
+        
+        if (profile) {
+          setUserId(profile.id);
+          
+          // Calculate level from XP (100 XP per level)
+          const level = Math.floor(profile.total_xp / 100) + 1;
+          
+          // Get current streak (count consecutive days with completed tasks)
+          const { data: recentCompletions } = await supabase
+            .from('commitments')
+            .select('completed_at')
+            .eq('user_id', profile.id)
+            .eq('status', 'completed')
+            .order('completed_at', { ascending: false })
+            .limit(30);
+          
+          let streak = 0;
+          if (recentCompletions && recentCompletions.length > 0) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let checkDate = new Date(today);
+            
+            for (let i = 0; i < 30; i++) {
+              const hasCompletion = recentCompletions.some(c => {
+                const completedDate = new Date(c.completed_at);
+                completedDate.setHours(0, 0, 0, 0);
+                return completedDate.getTime() === checkDate.getTime();
+              });
+              
+              if (hasCompletion) {
+                streak++;
+                checkDate.setDate(checkDate.getDate() - 1);
+              } else if (i === 0) {
+                // Check yesterday for ongoing streak
+                checkDate.setDate(checkDate.getDate() - 1);
+                const hasYesterday = recentCompletions.some(c => {
+                  const completedDate = new Date(c.completed_at);
+                  completedDate.setHours(0, 0, 0, 0);
+                  return completedDate.getTime() === checkDate.getTime();
+                });
+                if (hasYesterday) {
+                  streak++;
+                  checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                  break;
+                }
+              } else {
+                break;
+              }
+            }
+          }
+          
+          setUserStats({
+            totalEarnings: profile.total_earnings_cents / 100,
+            currentStreak: streak,
+            totalXP: profile.total_xp,
+            level
+          });
+        }
+      } catch (error) {
+        console.error('[STATS] Error fetching user stats:', error);
+      }
+    };
+    
+    fetchUserProfile();
+  }, [userName]);
 
   // Fetch tasks from Supabase
   useEffect(() => {
@@ -177,7 +256,36 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
       console.log('Commitment created:', commitment.id);
       setShowDetail(false);
       
+      // Calculate XP reward (10 XP per task)
+      const earnedXP = 10;
+      const newTotalXP = userStats.totalXP + earnedXP;
+      const oldLevel = userStats.level;
+      const newLevel = Math.floor(newTotalXP / 100) + 1;
+      const leveledUp = newLevel > oldLevel;
+      
+      // Update user stats in database
+      if (userId) {
+        await supabase
+          .from('user_profiles')
+          .update({ total_xp: newTotalXP })
+          .eq('id', userId);
+        
+        // Update local state
+        setUserStats(prev => ({
+          ...prev,
+          totalXP: newTotalXP,
+          level: newLevel
+        }));
+      }
+      
       // Show celebration
+      setCelebrationData({
+        earnedAmount: selectedTask.credits,
+        earnedXP,
+        leveledUp,
+        newLevel,
+        taskTitle: selectedTask.title
+      });
       setShowCelebration(true);
       
       // Refresh the ments list
@@ -210,8 +318,10 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
         userName={userName}
         tasks={ments}
         activeTasks={[]}
-        totalEarnings={0}
-        currentStreak={0}
+        totalEarnings={userStats.totalEarnings}
+        currentStreak={userStats.currentStreak}
+        level={userStats.level}
+        totalXP={userStats.totalXP}
         onTaskPress={(task) => {
           setSelectedMent(task);
           setShowDetail(true);
@@ -224,9 +334,17 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
         ment={selectedMent}
         onCommit={handleCommit}
       />
-      <CommitmentCelebration
+      <EnhancedCelebration
         visible={showCelebration}
-        onComplete={() => setShowCelebration(false)}
+        onComplete={() => {
+          setShowCelebration(false);
+          fetchMents(); // Refresh task list
+        }}
+        earnedAmount={celebrationData.earnedAmount}
+        earnedXP={celebrationData.earnedXP}
+        leveledUp={celebrationData.leveledUp}
+        newLevel={celebrationData.newLevel}
+        taskTitle={celebrationData.taskTitle}
       />
     </View>
   );

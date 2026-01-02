@@ -25,6 +25,8 @@ interface EarnerTaskMarketProps {
   activeTasks?: Task[];
   totalEarnings?: number;
   currentStreak?: number;
+  level?: number;
+  totalXP?: number;
   onTaskPress: (task: Task) => void;
   onRefresh?: () => void;
 }
@@ -35,6 +37,8 @@ export default function EarnerTaskMarket({
   activeTasks: externalActiveTasks,
   totalEarnings = 0,
   currentStreak = 0,
+  level = 1,
+  totalXP = 0,
   onTaskPress,
   onRefresh: onRefreshProp
 }: EarnerTaskMarketProps) {
@@ -229,19 +233,19 @@ export default function EarnerTaskMarket({
         </Text>
 
         {/* Stats Row */}
-        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
           <View style={{ 
             flex: 1, 
             backgroundColor: 'rgba(255,255,255,0.2)', 
-            padding: 12, 
-            borderRadius: 12,
+            padding: 10, 
+            borderRadius: 10,
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.3)'
           }}>
-            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11, marginBottom: 2 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginBottom: 2 }}>
               Total Earned
             </Text>
-            <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
               ${totalEarnings.toFixed(2)}
             </Text>
           </View>
@@ -249,18 +253,51 @@ export default function EarnerTaskMarket({
           <View style={{ 
             flex: 1, 
             backgroundColor: 'rgba(255,255,255,0.2)', 
-            padding: 12, 
-            borderRadius: 12,
+            padding: 10, 
+            borderRadius: 10,
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.3)'
           }}>
-            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11, marginBottom: 2 }}>
-              Streak 🔥
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginBottom: 2 }}>
+              Level
             </Text>
-            <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>
-              {currentStreak} days
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
+              {level} ⭐
             </Text>
           </View>
+
+          <View style={{ 
+            flex: 1, 
+            backgroundColor: 'rgba(255,255,255,0.2)', 
+            padding: 10, 
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.3)'
+          }}>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginBottom: 2 }}>
+              Streak 🔥
+            </Text>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
+              {currentStreak}d
+            </Text>
+          </View>
+        </View>
+
+        {/* XP Progress Bar */}
+        <View style={{ marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10 }}>
+              {totalXP % 100} / 100 XP
+            </Text>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10 }}>
+              Next: Level {level + 1}
+            </Text>
+          </View>
+          <ProgressBar 
+            progress={(totalXP % 100) / 100} 
+            color="#FFD700" 
+            style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.2)' }}
+          />
         </View>
 
         {/* Search Bar */}
