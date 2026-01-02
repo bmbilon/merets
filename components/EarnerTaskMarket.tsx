@@ -3,6 +3,7 @@ import { View, ScrollView, TouchableOpacity, RefreshControl, Animated } from 're
 import { Surface, Text, Chip, Avatar, Searchbar, ProgressBar } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
+import RepBadge from '@/components/RepBadge';
 
 interface Task {
   id: string;
