@@ -9,6 +9,7 @@ import {
 import EarnerTaskMarket from "@/components/EarnerTaskMarket";
 import MentDetailModal from "@/components/MentDetailModal";
 import EnhancedCelebration from "@/components/EnhancedCelebration";
+import RepChangeToast from "@/components/RepChangeToast";
 import { supabase } from "@/lib/supabase";
 import { SupabaseService } from "@/lib/supabase-service";
 
@@ -322,6 +323,7 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
         currentStreak={userStats.currentStreak}
         level={userStats.level}
         totalXP={userStats.totalXP}
+        repScore={10}
         onTaskPress={(task) => {
           setSelectedMent(task);
           setShowDetail(true);
@@ -346,6 +348,7 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
         newLevel={celebrationData.newLevel}
         taskTitle={celebrationData.taskTitle}
       />
+      {userId && <RepChangeToast userId={userId} />}
     </View>
   );
 }

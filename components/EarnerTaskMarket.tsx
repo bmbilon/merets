@@ -281,6 +281,22 @@ export default function EarnerTaskMarket({
               {currentStreak}d
             </Text>
           </View>
+
+          <View style={{ 
+            flex: 1, 
+            backgroundColor: 'rgba(255,255,255,0.2)', 
+            padding: 10, 
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.3)',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <RepBadge repScore={repScore} variant="minimal" />
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginTop: 4 }}>
+              Rep
+            </Text>
+          </View>
         </View>
 
         {/* XP Progress Bar */}
