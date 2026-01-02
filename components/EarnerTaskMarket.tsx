@@ -28,6 +28,7 @@ interface EarnerTaskMarketProps {
   currentStreak?: number;
   level?: number;
   totalXP?: number;
+  repScore?: number;
   onTaskPress: (task: Task) => void;
   onRefresh?: () => void;
 }
@@ -40,6 +41,7 @@ export default function EarnerTaskMarket({
   currentStreak = 0,
   level = 1,
   totalXP = 0,
+  repScore = 10,
   onTaskPress,
   onRefresh: onRefreshProp
 }: EarnerTaskMarketProps) {
