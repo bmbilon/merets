@@ -4,7 +4,7 @@ import { Text, Button, SegmentedButtons, FAB } from "react-native-paper";
 import ParentApprovalQueue from "@/components/ParentApprovalQueue";
 import { TaskMallAdmin } from "@/components/TaskMallAdmin";
 import SubmissionReviewModal from "@/components/SubmissionReviewModal";
-import FinancialSummary from "@/components/FinancialSummary";
+import EnhancedFinancialSummary from "@/components/EnhancedFinancialSummary";
 import { SupabaseService } from '../../lib/supabase-service';
 
 export default function ParentScreen() {
@@ -151,7 +151,7 @@ export default function ParentScreen() {
           </View>
         </ScrollView>
       ) : (
-        <FinancialSummary />
+        <EnhancedFinancialSummary />
       )}
 
       {/* FAB for quick access to task manager */}
