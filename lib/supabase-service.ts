@@ -435,9 +435,9 @@ export class SupabaseService {
         .from('commitment_submissions')
         .insert({
           commitment_id: commitmentId,
-          proof_photos: proofPhotos,
-          submission_notes: submissionNotes,
-          status: 'pending_approval',
+          evidence_urls: proofPhotos,
+          submission_note: submissionNotes,
+          submission_status: 'pending_approval',
           submitted_at: new Date().toISOString()
         })
         .select()
