@@ -50,8 +50,21 @@ export default function EarnerTaskMarket({
   const [activeSection, setActiveSection] = useState<'available' | 'quick' | 'recommended' | 'active'>('available');
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [groupBy, setGroupBy] = useState<'none' | 'category' | 'pay'>('category');
   const [sortBy, setSortBy] = useState<'pay' | 'time'>('pay');
+
+  const toggleCategory = (categoryName: string) => {
+    setCollapsedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryName)) {
+        newSet.delete(categoryName);
+      } else {
+        newSet.add(categoryName);
+      }
+      return newSet;
+    });
+  };
 
   const tasks: Task[] = externalTasks || [];
 
@@ -454,23 +467,29 @@ export default function EarnerTaskMarket({
             groupTasks.length > 0 && (
               <View key={groupName} style={{ marginBottom: 16 }}>
                 {groupBy !== 'none' && (
-                  <View style={{ 
-                    flexDirection: 'row', 
-                    alignItems: 'center', 
-                    marginBottom: 8,
-                    paddingBottom: 6,
-                    borderBottomWidth: 2,
-                    borderBottomColor: '#6200ee'
-                  }}>
+                  <TouchableOpacity 
+                    onPress={() => toggleCategory(groupName)}
+                    style={{ 
+                      flexDirection: 'row', 
+                      alignItems: 'center', 
+                      marginBottom: 8,
+                      paddingBottom: 6,
+                      borderBottomWidth: 2,
+                      borderBottomColor: '#6200ee'
+                    }}
+                  >
                     <Text variant="titleSmall" style={{ fontWeight: 'bold', color: '#6200ee' }}>
                       {groupName}
                     </Text>
                     <Text variant="bodySmall" style={{ marginLeft: 8, color: '#999' }}>
                       ({groupTasks.length})
                     </Text>
-                  </View>
+                    <Text style={{ marginLeft: 'auto', color: '#6200ee', fontSize: 18 }}>
+                      {collapsedCategories.has(groupName) ? '▼' : '▲'}
+                    </Text>
+                  </TouchableOpacity>
                 )}
-                {groupTasks.map(renderTaskCard)}
+                {!collapsedCategories.has(groupName) && groupTasks.map(renderTaskCard)}
               </View>
             )
           ))
