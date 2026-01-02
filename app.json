@@ -56,6 +56,12 @@
         "projectId": "f79701b4-2cbc-4784-907c-db8f9e0e71b9"
       }
     },
-    "owner": "execom-inc"
+    "owner": "execom-inc",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f79701b4-2cbc-4784-907c-db8f9e0e71b9"
+    }
   }
 }

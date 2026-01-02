@@ -33,4 +33,4 @@ jobs:
         run: npm ci
 
       - name: 🚀 Publish update
-        run: eas update --auto --branch development --message "${{ github.event.head_commit.message }}"
+        run: eas update --branch development --message "${{ github.event.head_commit.message }}" --non-interactive
