@@ -113,7 +113,8 @@ export default function SubmitWorkModal({
       const result = await SupabaseService.submitCommitment(
         mentId,
         uploadedUrls,
-        submissionNotes
+        submissionNotes,
+        userId
       );
 
       if (result.success) {

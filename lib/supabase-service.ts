@@ -427,7 +427,8 @@ export class SupabaseService {
   static async submitCommitment(
     commitmentId: string,
     proofPhotos: string[],
-    submissionNotes: string
+    submissionNotes: string,
+    userId: string
   ) {
     try {
       // Create submission record
@@ -438,6 +439,7 @@ export class SupabaseService {
           evidence_urls: proofPhotos,
           submission_note: submissionNotes,
           submission_status: 'pending_approval',
+          submitted_by: userId,
           submitted_at: new Date().toISOString()
         })
         .select()
