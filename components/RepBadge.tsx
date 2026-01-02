@@ -20,16 +20,14 @@ export default function RepBadge({
   const progress = getRepProgress(repScore);
   const privileges = getRepPrivileges(repScore);
 
-  // Minimal variant - just the abbrev chip
+  // Minimal variant - just the score
   if (variant === 'minimal') {
     return (
-      <Chip
-        mode="flat"
-        style={[styles.minimalChip, { backgroundColor: tierInfo.color + '20' }]}
-        textStyle={[styles.minimalText, { color: tierInfo.color }]}
-      >
-        {tierInfo.abbrev}
-      </Chip>
+      <View style={{ alignItems: 'center' }}>
+        <Text style={{ color: '#fff', fontSize: 24, fontWeight: 'bold' }}>
+          {repScore}
+        </Text>
+      </View>
     );
   }
 
