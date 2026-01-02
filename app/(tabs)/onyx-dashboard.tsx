@@ -33,7 +33,7 @@ export default function OnyxDashboard({ onSwitchUser }: OnyxDashboardProps) {
         setUserProfile(userProfile);
         
         // Set rep and total earnings
-        setRep(userProfile.total_xp || 0);
+        setRep(userProfile.rep_score || 10);
         setTotalCredits((userProfile.total_earnings_cents || 0) / 100); // Convert cents to dollars
         
         // Get active commitments count
