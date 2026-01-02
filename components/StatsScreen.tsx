@@ -32,7 +32,8 @@ export default function StatsScreen({ userId, userName }: StatsScreenProps) {
     currentStreak: 0,
     longestStreak: 0,
     totalXP: 0,
-    level: 1
+    level: 1,
+    repScore: 10
   });
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +48,7 @@ export default function StatsScreen({ userId, userName }: StatsScreenProps) {
       // Get user profile
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('total_earnings_cents, total_xp')
+        .select('total_earnings_cents, total_xp, rep_score')
         .eq('id', userId)
         .single();
 
@@ -126,7 +127,8 @@ export default function StatsScreen({ userId, userName }: StatsScreenProps) {
         currentStreak,
         longestStreak,
         totalXP: profile?.total_xp || 0,
-        level
+        level,
+        repScore: profile?.rep_score || 10
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -208,47 +210,54 @@ export default function StatsScreen({ userId, userName }: StatsScreenProps) {
 
       {/* Stats Grid */}
       <View style={{ padding: 16 }}>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-          <Surface style={{ flex: 1, minWidth: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <Surface style={{ width: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2, marginBottom: 12 }}>
             <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#2E7D32' }}>
               ${stats.totalEarnings.toFixed(2)}
             </Text>
             <Text style={{ color: '#666', marginTop: 4 }}>Total Earned</Text>
           </Surface>
 
-          <Surface style={{ flex: 1, minWidth: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2 }}>
+          <Surface style={{ width: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2, marginBottom: 12 }}>
             <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#6200ee' }}>
               {stats.completedTasks}
             </Text>
             <Text style={{ color: '#666', marginTop: 4 }}>Tasks Done</Text>
           </Surface>
 
-          <Surface style={{ flex: 1, minWidth: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2 }}>
+          <Surface style={{ width: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2, marginBottom: 12 }}>
             <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#FF6B00' }}>
               {stats.currentStreak} 🔥
             </Text>
             <Text style={{ color: '#666', marginTop: 4 }}>Current Streak</Text>
           </Surface>
 
-          <Surface style={{ flex: 1, minWidth: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2 }}>
+          <Surface style={{ width: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2, marginBottom: 12 }}>
             <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#FFD700' }}>
               {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : 'N/A'}
             </Text>
             <Text style={{ color: '#666', marginTop: 4 }}>Avg Rating ⭐</Text>
           </Surface>
 
-          <Surface style={{ flex: 1, minWidth: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2 }}>
+          <Surface style={{ width: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2, marginBottom: 12 }}>
             <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#1976D2' }}>
               {stats.inProgressTasks}
             </Text>
             <Text style={{ color: '#666', marginTop: 4 }}>In Progress</Text>
           </Surface>
 
-          <Surface style={{ flex: 1, minWidth: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2 }}>
+          <Surface style={{ width: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2, marginBottom: 12 }}>
             <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#D32F2F' }}>
               {stats.longestStreak}
             </Text>
             <Text style={{ color: '#666', marginTop: 4 }}>Best Streak</Text>
+          </Surface>
+
+          <Surface style={{ width: (width - 44) / 2, padding: 16, borderRadius: 12, elevation: 2, marginBottom: 12 }}>
+            <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#9C27B0' }}>
+              {stats.repScore}
+            </Text>
+            <Text style={{ color: '#666', marginTop: 4 }}>Rep Score</Text>
           </Surface>
         </View>
 
