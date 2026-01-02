@@ -52,7 +52,8 @@ export default function EarnerTaskMarket({
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [groupBy, setGroupBy] = useState<'none' | 'category' | 'pay'>('category');
-  const [sortBy, setSortBy] = useState<'pay' | 'time'>('pay');
+  const [sortBy, setSortBy] = useState<'pay' | 'time' | 'value'>('pay');
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   const toggleCategory = (categoryName: string) => {
     setCollapsedCategories(prev => {
@@ -106,9 +107,24 @@ export default function EarnerTaskMarket({
         if (!groups[cat]) groups[cat] = [];
         groups[cat].push(task);
       });
-      // Sort each group by pay
+      // Sort each group based on sortBy
       Object.keys(groups).forEach(key => {
-        groups[key].sort((a, b) => b.credits - a.credits);
+        groups[key].sort((a, b) => {
+          if (sortBy === 'pay') {
+            return b.credits - a.credits; // Highest pay first
+          } else if (sortBy === 'time') {
+            // Parse time estimate (e.g., "20 min" -> 20)
+            const timeA = parseInt(a.timeEstimate) || 0;
+            const timeB = parseInt(b.timeEstimate) || 0;
+            return timeA - timeB; // Shortest time first
+          } else { // sortBy === 'value' (pay per minute)
+            const timeA = parseInt(a.timeEstimate) || 1;
+            const timeB = parseInt(b.timeEstimate) || 1;
+            const valueA = a.credits / timeA;
+            const valueB = b.credits / timeB;
+            return valueB - valueA; // Highest value per minute first
+          }
+        });
       });
       return groups;
     } else { // groupBy === 'pay'
@@ -124,7 +140,7 @@ export default function EarnerTaskMarket({
       });
       return groups;
     }
-  }, [tasks, activeSection, searchQuery, groupBy]);
+  }, [tasks, activeSection, searchQuery, groupBy, sortBy]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -356,7 +372,7 @@ export default function EarnerTaskMarket({
 
       {/* Sort/Group Bar */}
       <View style={{ backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' }}>
-        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <Text variant="labelSmall" style={{ color: '#666' }}>Group:</Text>
           <Chip
             selected={groupBy === 'category'}
@@ -384,6 +400,37 @@ export default function EarnerTaskMarket({
             textStyle={{ fontSize: 12, color: groupBy === 'none' ? '#fff' : '#666', lineHeight: 16 }}
           >
             All
+          </Chip>
+          
+          <View style={{ width: 1, height: 24, backgroundColor: '#e0e0e0', marginHorizontal: 4 }} />
+          
+          <Text variant="labelSmall" style={{ color: '#666' }}>Sort:</Text>
+          <Chip
+            selected={sortBy === 'pay'}
+            onPress={() => setSortBy('pay')}
+            compact
+            style={{ height: 32, backgroundColor: sortBy === 'pay' ? '#6200ee' : '#f5f5f5' }}
+            textStyle={{ fontSize: 12, color: sortBy === 'pay' ? '#fff' : '#666', lineHeight: 16 }}
+          >
+            💰 Pay
+          </Chip>
+          <Chip
+            selected={sortBy === 'value'}
+            onPress={() => setSortBy('value')}
+            compact
+            style={{ height: 32, backgroundColor: sortBy === 'value' ? '#6200ee' : '#f5f5f5' }}
+            textStyle={{ fontSize: 12, color: sortBy === 'value' ? '#fff' : '#666', lineHeight: 16 }}
+          >
+            ⚡ $/min
+          </Chip>
+          <Chip
+            selected={sortBy === 'time'}
+            onPress={() => setSortBy('time')}
+            compact
+            style={{ height: 32, backgroundColor: sortBy === 'time' ? '#6200ee' : '#f5f5f5' }}
+            textStyle={{ fontSize: 12, color: sortBy === 'time' ? '#fff' : '#666', lineHeight: 16 }}
+          >
+            ⏱️ Time
           </Chip>
         </View>
       </View>
