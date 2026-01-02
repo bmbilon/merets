@@ -487,6 +487,12 @@ export class SupabaseService {
   // Upload photo to Supabase storage
   static async uploadPhoto(uri: string, userId: string): Promise<string | null> {
     try {
+      // Check authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('[UPLOAD] Auth session:', session ? 'authenticated' : 'NOT authenticated');
+      console.log('[UPLOAD] User ID from session:', session?.user?.id);
+      console.log('[UPLOAD] User ID from param:', userId);
+      
       // Generate unique filename
       const filename = `${userId}/${Date.now()}.jpg`;
       
