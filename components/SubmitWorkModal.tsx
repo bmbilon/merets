@@ -90,6 +90,8 @@ export default function SubmitWorkModal({
 
     setSubmitting(true);
     try {
+      console.log('[SUBMIT] Starting submission for commitment ID:', mentId);
+      console.log('[SUBMIT] User ID:', userId);
       console.log('[SUBMIT] Uploading photos...');
       
       // Upload photos to Supabase storage
