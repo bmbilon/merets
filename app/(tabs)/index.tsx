@@ -81,6 +81,7 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
   const [celebrationData, setCelebrationData] = useState({ earnedAmount: 0, earnedXP: 0, leveledUp: false, newLevel: 1, taskTitle: '' });
   const [userStats, setUserStats] = useState({ totalEarnings: 0, currentStreak: 0, totalXP: 0, level: 1 });
   const [userId, setUserId] = useState<string | null>(null);
+  const [repScore, setRepScore] = useState(10);
 
   // Fetch user profile and stats
   useEffect(() => {
@@ -94,6 +95,17 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
         
         if (profile) {
           setUserId(profile.id);
+          
+          // Fetch Rep score
+          const { data: repData } = await supabase
+            .from('user_profiles')
+            .select('rep_score')
+            .eq('id', profile.id)
+            .single();
+          
+          if (repData) {
+            setRepScore(repData.rep_score || 10);
+          }
           
           // Calculate level from XP (100 XP per level)
           const level = Math.floor(profile.total_xp / 100) + 1;
@@ -323,7 +335,7 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
         currentStreak={userStats.currentStreak}
         level={userStats.level}
         totalXP={userStats.totalXP}
-        repScore={10}
+        repScore={repScore}
         onTaskPress={(task) => {
           setSelectedMent(task);
           setShowDetail(true);
