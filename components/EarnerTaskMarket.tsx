@@ -66,6 +66,12 @@ export default function EarnerTaskMarket({
     });
   };
 
+  // Collapse all categories by default when groupedTasks changes
+  React.useEffect(() => {
+    const allCategories = new Set(Object.keys(groupedTasks));
+    setCollapsedCategories(allCategories);
+  }, [activeSection, groupBy]); // Re-collapse when section or grouping changes
+
   const tasks: Task[] = externalTasks || [];
 
   const onRefresh = async () => {
