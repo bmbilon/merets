@@ -9,7 +9,7 @@ import EmptyState from './EmptyState';
 interface LeaderboardEntry {
   id: string;
   name: string;
-  total_xp: number;
+  lifetime_merets: number;
   total_earnings_cents: number;
   tasks_completed: number;
   current_streak: number;
@@ -33,12 +33,12 @@ export default function Leaderboard({ currentUserId, compact = false }: Leaderbo
   const fetchLeaderboard = async () => {
     try {
       setLoading(true);
-      // Get all earner users sorted by XP
+      // Get all earner users sorted by Merets
       const { data, error} = await supabase
         .from('user_profiles')
         .select('*')
         .eq('role', 'kid')
-        .order('total_xp', { ascending: false })
+        .order('lifetime_merets', { ascending: false })
         .limit(compact ? 3 : 10);
 
       if (!error && data) {
@@ -128,7 +128,7 @@ export default function Leaderboard({ currentUserId, compact = false }: Leaderbo
                   {leader.name}
                 </Text>
                 <Text variant="bodySmall" style={{ color: '#666' }}>
-                  {leader.total_xp} XP • {leader.tasks_completed} tasks
+                  {leader.lifetime_merets} Merets • {leader.tasks_completed} tasks
                 </Text>
               </View>
               {leader.current_streak > 0 && (
@@ -254,9 +254,9 @@ export default function Leaderboard({ currentUserId, compact = false }: Leaderbo
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                       <IconSymbol size={16} name="star.fill" color="#FFD700" />
                       <Text variant="bodyMedium" style={{ fontWeight: '600' }}>
-                        {leader.total_xp}
+                        {leader.lifetime_merets}
                       </Text>
-                      <Text variant="bodySmall" style={{ color: '#666' }}>XP</Text>
+                      <Text variant="bodySmall" style={{ color: '#666' }}>Merets</Text>
                     </View>
 
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
