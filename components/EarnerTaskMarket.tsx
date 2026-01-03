@@ -50,7 +50,7 @@ export default function EarnerTaskMarket({
   onTaskPress,
   onRefresh: onRefreshProp
 }: EarnerTaskMarketProps) {
-  console.log('🎮 NEW EarnerTaskMarket with gamification loaded!');
+  console.log('🎮 EarnerTaskMarket loaded:', { repScore, lifetimeMeters, experienceHours, totalEarnings });
   
   const [activeSection, setActiveSection] = useState<'available' | 'quick' | 'recommended' | 'active'>('available');
   const [refreshing, setRefreshing] = useState(false);
@@ -283,13 +283,18 @@ export default function EarnerTaskMarket({
             </Text>
             <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11 }}>
               {(() => {
+                if (lifetimeMeters === 0) {
+                  return 'Loading...';
+                }
                 const progress = calculateMeretsProgress(lifetimeMeters, repScore);
+                console.log('📊 Progress:', { lifetimeMeters, repScore, progress });
                 return `${Math.round(progress.meretsRemaining)} merets to Level ${repScore + 1}`;
               })()}
             </Text>
           </View>
           <ProgressBar 
             progress={(() => {
+              if (lifetimeMeters === 0) return 0;
               const progress = calculateMeretsProgress(lifetimeMeters, repScore);
               return progress.progress;
             })()}
@@ -309,9 +314,9 @@ export default function EarnerTaskMarket({
             borderColor: 'rgba(255,255,255,0.3)'
           }}>
             <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginBottom: 2 }}>
-              Total Earned
+              Earned
             </Text>
-            <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }} numberOfLines={1} adjustsFontSizeToFit>
+            <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }} numberOfLines={1} ellipsizeMode="clip">
               ${totalEarnings.toFixed(2)}
             </Text>
           </View>
