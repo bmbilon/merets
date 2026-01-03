@@ -8,6 +8,7 @@ import StreakDisplay from './StreakDisplay';
 import Leaderboard from './Leaderboard';
 import LoadingState from './LoadingState';
 import EmptyState from './EmptyState';
+import { calculateMeretsProgress, meretsRequiredForLevel } from '@/lib/merets-helper';
 
 interface EarnerDashboardProps {
   userName: string;
@@ -66,10 +67,11 @@ export default function EarnerDashboard({
   const repProgress = (rep % 20) / 20;
   const repLabels = ['Newcomer', 'Learner', 'Contributor', 'Reliable', 'Trusted', 'Elite'];
   
-  // Calculate level from XP (100 XP per level)
-  const level = Math.floor(rep / 100) + 1;
-  const xpInCurrentLevel = rep % 100;
-  const xpForNextLevel = 100;
+  // Calculate Merets progress to next Rep Level
+  const meretsProgress = calculateMeretsProgress(totalMerets, rep);
+  const currentLevelMeters = meretsRequiredForLevel(rep);
+  const nextLevelMeters = meretsRequiredForLevel(rep + 1);
+  const meretsForThisLevel = nextLevelMeters - currentLevelMeters;
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
@@ -110,14 +112,14 @@ export default function EarnerDashboard({
         }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
             <Text variant="bodyMedium" style={{ color: '#fff', fontWeight: '600' }}>
-              Rep: {rep}/100
+              Rep: {rep}/{rep + 1}
             </Text>
             <Text variant="bodySmall" style={{ color: 'rgba(255,255,255,0.8)' }}>
-              {Math.round(repProgress * 100)}% to next level
+              {Math.round(meretsProgress.meretsRemaining)} Merets to next level
             </Text>
           </View>
           <ProgressBar 
-            progress={repProgress} 
+            progress={meretsProgress.progress} 
             color="#FFD700"
             style={{ height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.3)' }}
           />
@@ -172,13 +174,27 @@ export default function EarnerDashboard({
               elevation: 2,
               marginBottom: 16
             }}>
-              <AnimatedProgressBar
-                currentXP={xpInCurrentLevel}
-                maxXP={xpForNextLevel}
-                level={level}
-                color="#9C27B0"
-                showLabel={true}
-              />
+              <View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <IconSymbol size={24} name="star.fill" color="#9C27B0" />
+                    <Text variant="titleLarge" style={{ fontWeight: 'bold', color: '#9C27B0' }}>
+                      Level {rep}
+                    </Text>
+                  </View>
+                  <Text variant="bodyMedium" style={{ color: '#666' }}>
+                    {meretsProgress.meretsEarnedInLevel.toFixed(1)}/{meretsForThisLevel.toFixed(1)} Merets ({Math.round(meretsProgress.progress * 100)}%)
+                  </Text>
+                </View>
+                <ProgressBar 
+                  progress={meretsProgress.progress} 
+                  color="#9C27B0"
+                  style={{ height: 12, borderRadius: 6 }}
+                />
+                <Text variant="bodySmall" style={{ color: '#999', marginTop: 4 }}>
+                  {Math.round(meretsProgress.meretsRemaining)} Merets to next level
+                </Text>
+              </View>
             </Surface>
 
             {/* Streak Display */}

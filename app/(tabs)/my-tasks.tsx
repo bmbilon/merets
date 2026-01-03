@@ -68,9 +68,8 @@ export default function MyTasks() {
           setCompletedMents(completedData.length);
         }
         
-        // Calculate total merets (could be based on a formula)
-        // For now, using XP as merets
-        setTotalMerets(userProfile.total_xp || 0);
+        // Get lifetime merets from profile
+        setTotalMerets(userProfile.lifetime_merets || 0);
       }
     } catch (error) {
       console.error('Error loading user stats:', error);
