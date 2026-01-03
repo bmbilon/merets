@@ -21,6 +21,7 @@ export default function MainApp() {
     const loadUser = async () => {
       try {
         const user = await AsyncStorage.getItem("selected_user");
+        console.log('[Index] Loaded user:', user);
         setSelectedUser(user);
       } catch (error) {
         console.error("Error loading user:", error);
@@ -41,16 +42,31 @@ export default function MainApp() {
     );
   }
 
-  // Show user selection if no user is selected
+  // If no user, AuthGate will handle showing user selection
+  // This shouldn't happen as AuthGate wraps everything
   if (!selectedUser) {
-    const UserSelectScreen = require('../../components/screens/user-select').default;
-    return <UserSelectScreen onUserSelected={(user: string) => setSelectedUser(user)} />;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>No user selected</Text>
+      </View>
+    );
   }
 
   // Route to appropriate dashboard based on selected user
   const handleSwitchUser = async () => {
+    console.log('[Index] Switch user pressed - clearing AsyncStorage');
     await AsyncStorage.removeItem("selected_user");
+    // Force reload by setting state to null
     setSelectedUser(null);
+    // Reload the page to trigger AuthGate
+    setTimeout(() => {
+      loadUser();
+    }, 100);
+  };
+
+  const loadUser = async () => {
+    const user = await AsyncStorage.getItem("selected_user");
+    setSelectedUser(user);
   };
 
   switch (selectedUser) {
