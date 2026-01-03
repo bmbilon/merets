@@ -272,7 +272,7 @@ export default function SubmitWorkModal({
               contentStyle={{ paddingVertical: 8 }}
               buttonColor="#4CAF50"
               loading={submitting}
-              disabled={submitting || selectedPhotos.length === 0}
+              disabled={submitting}
             >
               Submit Work
             </Button>
