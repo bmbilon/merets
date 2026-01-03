@@ -19,14 +19,20 @@ export default function TabLayout() {
     const loadUserRole = async () => {
       try {
         const user = await AsyncStorage.getItem('selected_user');
-        console.log('[TabLayout] Loaded user:', user);
+        console.log('[TabLayout] ===== LOADING USER ROLE =====');
+        console.log('[TabLayout] Selected user:', user);
+        
+        let role: UserRole;
         if (user === 'lauren' || user === 'brett') {
-          setUserRole('parent');
+          role = 'parent';
         } else if (user === 'aveya' || user === 'onyx') {
-          setUserRole('earner');
+          role = 'earner';
         } else {
-          setUserRole('earner'); // Default to earner
+          role = 'earner'; // Default to earner
         }
+        
+        console.log('[TabLayout] Setting userRole to:', role);
+        setUserRole(role);
       } catch (error) {
         console.error('[TabLayout] Error loading user:', error);
         setUserRole('earner');
@@ -42,8 +48,11 @@ export default function TabLayout() {
     return null;
   }
 
+  console.log('[TabLayout] Rendering tabs with userRole:', userRole);
+
   return (
     <Tabs
+      key={`tabs-${userRole}`}
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
@@ -88,6 +97,7 @@ export default function TabLayout() {
           title: 'My Tasks',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="list.clipboard" color={color} />,
           href: userRole === 'earner' ? undefined : null,
+          tabBarButton: userRole === 'earner' ? undefined : () => null,
         }}
       />
 
@@ -98,6 +108,7 @@ export default function TabLayout() {
           title: 'Tasks',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="checkmark.seal.fill" color={color} />,
           href: userRole === 'parent' || userRole === 'issuer' ? undefined : null,
+          tabBarButton: (userRole === 'parent' || userRole === 'issuer') ? undefined : () => null,
         }}
       />
 
@@ -108,6 +119,7 @@ export default function TabLayout() {
           title: 'Stats',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="chart.bar.fill" color={color} />,
           href: userRole === 'earner' ? undefined : null,
+          tabBarButton: userRole === 'earner' ? undefined : () => null,
         }}
       />
 
@@ -118,6 +130,7 @@ export default function TabLayout() {
           title: 'Payouts',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="banknote" color={color} />,
           href: userRole === 'parent' || userRole === 'issuer' ? undefined : null,
+          tabBarButton: (userRole === 'parent' || userRole === 'issuer') ? undefined : () => null,
         }}
       />
 
