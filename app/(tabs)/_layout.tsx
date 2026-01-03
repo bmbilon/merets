@@ -61,7 +61,7 @@ export default function TabLayout() {
           height: 85,
           paddingBottom: 20,
           paddingTop: 8,
-          paddingHorizontal: 10,
+          paddingHorizontal: 20,
           backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#ffffff',
           borderTopWidth: 1,
           borderTopColor: colorScheme === 'dark' ? '#333' : '#e0e0e0',
@@ -75,7 +75,10 @@ export default function TabLayout() {
           marginBottom: 0,
         },
         tabBarItemStyle: {
-          paddingHorizontal: 5,
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: 8,
         },
       }}>
       
