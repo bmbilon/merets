@@ -32,7 +32,7 @@ BEGIN
     c.id,
     c.effort_minutes,
     c.pay_cents,
-    c.earner_id
+    c.user_id
   INTO 
     v_commitment_id,
     v_effort_minutes,

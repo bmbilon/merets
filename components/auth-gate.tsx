@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Text } from 'react-native-paper';
@@ -19,6 +19,7 @@ export default function AuthGate({ children, onAuthComplete }: AuthGateProps) {
   const [pendingUser, setPendingUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showPinAuth, setShowPinAuth] = useState(false);
+  const previousUserRef = useRef<User | null>(null);
 
   useEffect(() => {
     loadUser();
@@ -34,9 +35,10 @@ export default function AuthGate({ children, onAuthComplete }: AuthGateProps) {
   const checkUserChange = async () => {
     try {
       const user = await AsyncStorage.getItem(USER_KEY);
-      // Only update if user actually changed
-      if (user !== selectedUser) {
-        console.log('[AuthGate] User changed from', selectedUser, 'to', user);
+      // Only update if user actually changed from the previous check
+      if (user !== previousUserRef.current) {
+        console.log('[AuthGate] User changed from', previousUserRef.current, 'to', user);
+        previousUserRef.current = user as User | null;
         setSelectedUser(user as User | null);
         // Don't call onAuthComplete here - it causes infinite loop
         // The user selection flow will call it when needed
@@ -50,6 +52,7 @@ export default function AuthGate({ children, onAuthComplete }: AuthGateProps) {
     try {
       const user = await AsyncStorage.getItem(USER_KEY);
       console.log('[AuthGate] Loaded user:', user);
+      previousUserRef.current = user as User | null;
       setSelectedUser(user as User | null);
     } catch (error) {
       console.error('[AuthGate] Error loading user:', error);
