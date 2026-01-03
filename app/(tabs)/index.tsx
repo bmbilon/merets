@@ -78,7 +78,6 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
   const [ments, setMents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
-  const [celebrationData, setCelebrationData] = useState({ earnedAmount: 0, earnedXP: 0, leveledUp: false, newLevel: 1, taskTitle: '' });
   const [userStats, setUserStats] = useState({ totalEarnings: 0, currentStreak: 0, totalXP: 0, level: 1, lifetimeMeters: 0, experienceHours: 0 });
   const [userId, setUserId] = useState<string | null>(null);
   const [repScore, setRepScore] = useState(10);
@@ -285,14 +284,7 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
         }));
       }
       
-      // Show celebration
-      setCelebrationData({
-        earnedAmount: selectedTask.credits,
-        earnedXP,
-        leveledUp,
-        newLevel,
-        taskTitle: selectedTask.title
-      });
+      // Show confetti celebration
       setShowCelebration(true);
       
       // Refresh the ments list
@@ -350,11 +342,6 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
           setShowCelebration(false);
           fetchMents(); // Refresh task list
         }}
-        earnedAmount={celebrationData.earnedAmount}
-        earnedXP={celebrationData.earnedXP}
-        leveledUp={celebrationData.leveledUp}
-        newLevel={celebrationData.newLevel}
-        taskTitle={celebrationData.taskTitle}
       />
       {userId && <RepChangeToast userId={userId} />}
     </View>
