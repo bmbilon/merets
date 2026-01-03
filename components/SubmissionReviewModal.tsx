@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Image, ScrollView, Alert, Dimensions } from 'react-native';
+import { View, Image, ScrollView, Alert, Dimensions, TouchableOpacity } from 'react-native';
 import { Modal, Portal, Text, Button, TextInput, Chip, Divider } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { SupabaseService } from '../lib/supabase-service';
@@ -209,18 +209,21 @@ export default function SubmissionReviewModal({
                 <Text variant="bodyLarge" style={{ fontWeight: '600', marginBottom: 12 }}>
                   Rate the Work
                 </Text>
-                <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center' }}>
+                <View style={{ flexDirection: 'row', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <Button
+                    <TouchableOpacity
                       key={star}
-                      mode={rating >= star ? 'contained' : 'outlined'}
                       onPress={() => setRating(star)}
-                      style={{ borderRadius: 12 }}
-                      buttonColor={rating >= star ? '#FFD700' : undefined}
-                      textColor={rating >= star ? '#000' : '#999'}
+                      style={{
+                        padding: 4,
+                        borderRadius: 8,
+                        backgroundColor: rating >= star ? '#FFF9E6' : 'transparent'
+                      }}
                     >
-                      ⭐
-                    </Button>
+                      <Text style={{ fontSize: 32 }}>
+                        {rating >= star ? '⭐' : '☆'}
+                      </Text>
+                    </TouchableOpacity>
                   ))}
                 </View>
                 <Text variant="bodySmall" style={{ textAlign: 'center', color: '#666', marginTop: 8 }}>
