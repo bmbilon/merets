@@ -49,7 +49,7 @@ When setting up user profiles with specific **Rep Levels** and **Average Quality
 - **Average Quality Rating:** 4.5 stars
 - **Quality Multiplier:** 1.10×
 - **Implied Hours Worked:** 56 ÷ 1.10 = **50.91 hours**
-- **Total Earnings:** $509.10 (assuming $10/hour average)
+- **Total Earnings:** $916.36 (at $18/hour average)
 
 ### Onyx - Rep Level 22
 - **Rep Score:** 22
@@ -57,7 +57,7 @@ When setting up user profiles with specific **Rep Levels** and **Average Quality
 - **Average Quality Rating:** 4.5 stars
 - **Quality Multiplier:** 1.10×
 - **Implied Hours Worked:** 48 ÷ 1.10 = **43.64 hours**
-- **Total Earnings:** $436.40 (assuming $10/hour average)
+- **Total Earnings:** $785.45 (at $18/hour average)
 
 ## Why This Matters
 
@@ -91,5 +91,5 @@ ORDER BY name;
 ```
 
 Expected output:
-- **Onyx:** 22, 48, 4.5, $436.40, 43.64 hours, $10.00/hr
-- **Aveya:** 24, 56, 4.5, $509.10, 50.91 hours, $10.00/hr
+- **Onyx:** 22, 48, 4.5, $785.45, 43.64 hours, $18.00/hr
+- **Aveya:** 24, 56, 4.5, $916.36, 50.91 hours, $18.00/hr

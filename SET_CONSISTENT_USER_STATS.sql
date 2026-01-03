@@ -11,9 +11,9 @@
 --   Rep 24 = 56 merets ÷ 1.10 = 50.91 hours worked
 --   Rep 22 = 48 merets ÷ 1.10 = 43.64 hours worked
 --
--- Assuming $10/hour average pay:
---   Rep 24 = $509.10 total earnings
---   Rep 22 = $436.40 total earnings
+-- At $18/hour average pay:
+--   Rep 24 = $916.36 total earnings
+--   Rep 22 = $785.45 total earnings
 -- ============================================================================
 
 -- Update Aveya (Rep Level 24)
@@ -22,7 +22,7 @@ SET
   rep_score = 24,
   lifetime_merets = 56,
   average_quality_rating = 4.5,
-  total_earnings_cents = 50910,  -- $509.10 (50.91 hours × $10/hr)
+  total_earnings_cents = 91636,  -- $916.36 (50.91 hours × $18/hr)
   updated_at = NOW()
 WHERE name = 'Aveya';
 
@@ -32,7 +32,7 @@ SET
   rep_score = 22,
   lifetime_merets = 48,
   average_quality_rating = 4.5,
-  total_earnings_cents = 43640,  -- $436.40 (43.64 hours × $10/hr)
+  total_earnings_cents = 78545,  -- $785.45 (43.64 hours × $18/hr)
   updated_at = NOW()
 WHERE name = 'Onyx';
 
