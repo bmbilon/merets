@@ -6,7 +6,8 @@ import { supabase } from '@/lib/supabase';
 
 interface Notification {
   id: string;
-  type: string;
+  notification_type: string;
+  type?: string; // For backward compatibility
   title: string;
   message: string;
   read: boolean;
@@ -35,7 +36,7 @@ export default function EnhancedInbox({ userId, userName }: EnhancedInboxProps) 
       const { data } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', userId)
+        .eq('recipient_id', userId)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -73,7 +74,7 @@ export default function EnhancedInbox({ userId, userName }: EnhancedInboxProps) 
       await supabase
         .from('notifications')
         .update({ read: true })
-        .eq('user_id', userId)
+        .eq('recipient_id', userId)
         .eq('read', false);
 
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
@@ -95,7 +96,8 @@ export default function EnhancedInbox({ userId, userName }: EnhancedInboxProps) 
     }
   };
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (notification: Notification) => {
+    const type = notification.notification_type || notification.type || '';
     switch (type) {
       case 'task_assigned':
       case 'child_committed_external_task':
@@ -104,6 +106,7 @@ export default function EnhancedInbox({ userId, userName }: EnhancedInboxProps) 
         return '📸';
       case 'work_approved':
       case 'commitment_approved':
+      case 'task_approved':
         return '✅';
       case 'work_rejected':
       case 'commitment_denied':
@@ -121,10 +124,12 @@ export default function EnhancedInbox({ userId, userName }: EnhancedInboxProps) 
     }
   };
 
-  const getNotificationColor = (type: string) => {
+  const getNotificationColor = (notification: Notification) => {
+    const type = notification.notification_type || notification.type || '';
     switch (type) {
       case 'work_approved':
       case 'commitment_approved':
+      case 'task_approved':
       case 'payment_received':
         return '#4CAF50';
       case 'work_rejected':
@@ -287,13 +292,13 @@ export default function EnhancedInbox({ userId, userName }: EnhancedInboxProps) 
                       elevation: notification.read ? 1 : 3,
                       opacity: notification.read ? 0.7 : 1,
                       borderLeftWidth: 4,
-                      borderLeftColor: getNotificationColor(notification.type)
+                      borderLeftColor: getNotificationColor(notification)
                     }}
                   >
                     <View style={{ padding: 16 }}>
                       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
                         <Text style={{ fontSize: 32, marginRight: 12 }}>
-                          {getNotificationIcon(notification.type)}
+                          {getNotificationIcon(notification)}
                         </Text>
                         <View style={{ flex: 1 }}>
                           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
