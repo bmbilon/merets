@@ -127,7 +127,7 @@ export default function SubmissionReviewModal({
   const commitment = submission.commitment || {};
   const task = commitment.task || {};
   const user = commitment.user || {};
-  const photos = submission.proof_photos || [];
+  const photos = submission.evidence_urls || [];
 
   return (
     <Portal>
@@ -181,7 +181,7 @@ export default function SubmissionReviewModal({
           )}
 
           {/* Submission Notes */}
-          {submission.submission_notes && (
+          {submission.submission_note && (
             <View style={{ marginBottom: 20 }}>
               <Text variant="bodyLarge" style={{ fontWeight: '600', marginBottom: 8 }}>
                 Notes from {user.name}
@@ -194,7 +194,7 @@ export default function SubmissionReviewModal({
                 borderLeftColor: '#2196F3'
               }}>
                 <Text variant="bodyMedium" style={{ color: '#666' }}>
-                  {submission.submission_notes}
+                  {submission.submission_note}
                 </Text>
               </View>
             </View>

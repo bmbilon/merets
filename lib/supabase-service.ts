@@ -535,10 +535,10 @@ export class SupabaseService {
     try {
       const { data, error } = await supabase.rpc('approve_submission', {
         p_submission_id: submissionId,
-        p_rating: rating,
+        p_quality_rating: rating,
         p_reviewer_id: reviewerId,
-        p_review_notes: reviewNotes || null,
-        p_tip_cents: tipCents || 0
+        p_reviewer_notes: reviewNotes || null,
+        p_bonus_tip_cents: tipCents || 0
       });
 
       if (error) throw error;
