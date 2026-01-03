@@ -102,7 +102,8 @@ BEGIN
   -- Rep score will be updated by the auto_update_rep_from_merets trigger
 
   -- Create notification for earner
-  INSERT INTO notifications (user_id, type, title, message, related_id)
+  -- Notifications table schema: id, user_id, type, title, message, read, created_at, action_type, action_data
+  INSERT INTO notifications (user_id, type, title, message, action_type, action_data)
   VALUES (
     v_earner_id,
     'approval',
@@ -111,7 +112,8 @@ BEGIN
            p_quality_rating, 
            v_merets_earned,
            v_total_pay_cents / 100.0),
-    v_commitment_id
+    'view_commitment',
+    jsonb_build_object('commitment_id', v_commitment_id, 'submission_id', p_submission_id)
   );
 
   RETURN QUERY SELECT TRUE, v_commitment_id, v_merets_earned;
