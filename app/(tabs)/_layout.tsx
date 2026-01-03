@@ -11,18 +11,36 @@ type UserRole = 'earner' | 'parent' | 'issuer';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const [userRole, setUserRole] = useState<UserRole>('earner');
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Determine user role from selected user
-    AsyncStorage.getItem('selected_user').then((user) => {
-      if (user === 'lauren' || user === 'brett') {
-        setUserRole('parent');
-      } else if (user === 'aveya' || user === 'onyx') {
+    const loadUserRole = async () => {
+      try {
+        const user = await AsyncStorage.getItem('selected_user');
+        console.log('[TabLayout] Loaded user:', user);
+        if (user === 'lauren' || user === 'brett') {
+          setUserRole('parent');
+        } else if (user === 'aveya' || user === 'onyx') {
+          setUserRole('earner');
+        } else {
+          setUserRole('earner'); // Default to earner
+        }
+      } catch (error) {
+        console.error('[TabLayout] Error loading user:', error);
         setUserRole('earner');
+      } finally {
+        setIsLoading(false);
       }
-    });
+    };
+    loadUserRole();
   }, []);
+
+  // Don't render tabs until we know the user role
+  if (isLoading || !userRole) {
+    return null;
+  }
 
   return (
     <Tabs

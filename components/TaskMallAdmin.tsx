@@ -783,21 +783,31 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                 Category
               </Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {skillCategories.map(category => (
-                  <Chip
-                    key={category}
-                    selected={newTask.skill_category === category}
-                    onPress={() => setNewTask({...newTask, skill_category: category})}
-                    style={{ 
-                      backgroundColor: newTask.skill_category === category ? '#4CAF50' : '#E0E0E0' 
-                    }}
-                    textStyle={{ 
-                      color: newTask.skill_category === category ? 'white' : '#666' 
-                    }}
-                  >
-                    {category}
-                  </Chip>
-                ))}
+                {skillCategories.map(category => {
+                  const isCustom = customCategories.includes(category);
+                  return (
+                    <Chip
+                      key={category}
+                      selected={newTask.skill_category === category}
+                      onPress={() => setNewTask({...newTask, skill_category: category})}
+                      onClose={isCustom ? () => {
+                        // Delete custom category
+                        setCustomCategories(customCategories.filter(c => c !== category));
+                        if (newTask.skill_category === category) {
+                          setNewTask({...newTask, skill_category: ''});
+                        }
+                      } : undefined}
+                      style={{ 
+                        backgroundColor: newTask.skill_category === category ? '#4CAF50' : '#E0E0E0' 
+                      }}
+                      textStyle={{ 
+                        color: newTask.skill_category === category ? 'white' : '#666' 
+                      }}
+                    >
+                      {category}
+                    </Chip>
+                  );
+                })}
                 <Chip
                   mode="flat"
                   icon="plus"
@@ -863,7 +873,7 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
                     left={<TextInput.Affix text="$" />}
                     dense
                   />
-                  <Text variant="bodySmall" style={{ color: '#666' }}>/hr</Text>
+                  <Text variant="bodySmall" style={{ color: '#666', fontSize: 10 }}>/hr</Text>
                 </View>
               </View>
               <Slider
