@@ -79,7 +79,7 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
   const [loading, setLoading] = useState(true);
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationData, setCelebrationData] = useState({ earnedAmount: 0, earnedXP: 0, leveledUp: false, newLevel: 1, taskTitle: '' });
-  const [userStats, setUserStats] = useState({ totalEarnings: 0, currentStreak: 0, totalXP: 0, level: 1 });
+  const [userStats, setUserStats] = useState({ totalEarnings: 0, currentStreak: 0, totalXP: 0, level: 1, lifetimeMeters: 0, experienceHours: 0 });
   const [userId, setUserId] = useState<string | null>(null);
   const [repScore, setRepScore] = useState(10);
 
@@ -89,23 +89,15 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
       try {
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('id, total_earnings_cents, total_xp')
+          .select('id, total_earnings_cents, total_xp, rep_score, lifetime_merets, experience_hours')
           .eq('name', userName)
           .single();
         
         if (profile) {
           setUserId(profile.id);
           
-          // Fetch Rep score
-          const { data: repData } = await supabase
-            .from('user_profiles')
-            .select('rep_score')
-            .eq('id', profile.id)
-            .single();
-          
-          if (repData) {
-            setRepScore(repData.rep_score || 10);
-          }
+          // Set Rep score from profile
+          setRepScore(profile.rep_score || 10);
           
           // Calculate level from XP (100 XP per level)
           const level = Math.floor(profile.total_xp / 100) + 1;
@@ -159,7 +151,9 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
             totalEarnings: profile.total_earnings_cents / 100,
             currentStreak: streak,
             totalXP: profile.total_xp,
-            level
+            level,
+            lifetimeMeters: profile.lifetime_merets || 0,
+            experienceHours: profile.experience_hours || 0
           });
         }
       } catch (error) {
@@ -336,6 +330,8 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
         level={userStats.level}
         totalXP={userStats.totalXP}
         repScore={repScore}
+        lifetimeMeters={userStats.lifetimeMeters}
+        experienceHours={userStats.experienceHours}
         onTaskPress={(task) => {
           setSelectedMent(task);
           setShowDetail(true);

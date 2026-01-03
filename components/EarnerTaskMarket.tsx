@@ -4,6 +4,7 @@ import { Surface, Text, Chip, Avatar, Searchbar, ProgressBar } from 'react-nativ
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { LinearGradient } from 'expo-linear-gradient';
 import RepBadge from '@/components/RepBadge';
+import { calculateMeretsProgress } from '@/lib/merets-helper';
 
 interface Task {
   id: string;
@@ -29,6 +30,8 @@ interface EarnerTaskMarketProps {
   level?: number;
   totalXP?: number;
   repScore?: number;
+  lifetimeMeters?: number;
+  experienceHours?: number;
   onTaskPress: (task: Task) => void;
   onRefresh?: () => void;
 }
@@ -42,6 +45,8 @@ export default function EarnerTaskMarket({
   level = 1,
   totalXP = 0,
   repScore = 10,
+  lifetimeMeters = 0,
+  experienceHours = 0,
   onTaskPress,
   onRefresh: onRefreshProp
 }: EarnerTaskMarketProps) {
@@ -270,6 +275,29 @@ export default function EarnerTaskMarket({
           Hey {userName}! 👋
         </Text>
 
+        {/* Merets Progress Bar */}
+        <View style={{ marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11 }}>
+              Rep Level {repScore}
+            </Text>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 11 }}>
+              {(() => {
+                const progress = calculateMeretsProgress(lifetimeMeters, repScore);
+                return `${Math.round(progress.meretsRemaining)} merets to Level ${repScore + 1}`;
+              })()}
+            </Text>
+          </View>
+          <ProgressBar 
+            progress={(() => {
+              const progress = calculateMeretsProgress(lifetimeMeters, repScore);
+              return progress.progress;
+            })()}
+            color="#FFD700"
+            style={{ height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.3)' }}
+          />
+        </View>
+
         {/* Stats Row */}
         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
           <View style={{ 
@@ -283,7 +311,7 @@ export default function EarnerTaskMarket({
             <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginBottom: 2 }}>
               Total Earned
             </Text>
-            <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
+            <Text style={{ color: '#fff', fontSize: 15, fontWeight: 'bold' }} numberOfLines={1} adjustsFontSizeToFit>
               ${totalEarnings.toFixed(2)}
             </Text>
           </View>
@@ -301,6 +329,22 @@ export default function EarnerTaskMarket({
             </Text>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
               {repScore}
+            </Text>
+          </View>
+
+          <View style={{ 
+            flex: 1, 
+            backgroundColor: 'rgba(255,255,255,0.2)', 
+            padding: 10, 
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.3)'
+          }}>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginBottom: 2 }}>
+              EXPH
+            </Text>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
+              {experienceHours.toFixed(1)}h
             </Text>
           </View>
 
