@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -14,34 +15,43 @@ export default function TabLayout() {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Determine user role from selected user
-    const loadUserRole = async () => {
-      try {
-        const user = await AsyncStorage.getItem('selected_user');
-        console.log('[TabLayout] ===== LOADING USER ROLE =====');
-        console.log('[TabLayout] Selected user:', user);
-        
-        let role: UserRole;
-        if (user === 'lauren' || user === 'brett') {
-          role = 'parent';
-        } else if (user === 'aveya' || user === 'onyx') {
-          role = 'earner';
-        } else {
-          role = 'earner'; // Default to earner
-        }
-        
-        console.log('[TabLayout] Setting userRole to:', role);
-        setUserRole(role);
-      } catch (error) {
-        console.error('[TabLayout] Error loading user:', error);
-        setUserRole('earner');
-      } finally {
-        setIsLoading(false);
+  const loadUserRole = useCallback(async () => {
+    try {
+      const user = await AsyncStorage.getItem('selected_user');
+      console.log('[TabLayout] ===== LOADING USER ROLE =====');
+      console.log('[TabLayout] Selected user:', user);
+      
+      let role: UserRole;
+      if (user === 'lauren' || user === 'brett') {
+        role = 'parent';
+      } else if (user === 'aveya' || user === 'onyx') {
+        role = 'earner';
+      } else {
+        role = 'earner'; // Default to earner
       }
-    };
-    loadUserRole();
+      
+      console.log('[TabLayout] Setting userRole to:', role);
+      setUserRole(role);
+    } catch (error) {
+      console.error('[TabLayout] Error loading user:', error);
+      setUserRole('earner');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  // Load on mount
+  useEffect(() => {
+    loadUserRole();
+  }, [loadUserRole]);
+
+  // Reload whenever the screen comes into focus (user switches)
+  useFocusEffect(
+    useCallback(() => {
+      console.log('[TabLayout] Screen focused, reloading user role');
+      loadUserRole();
+    }, [loadUserRole])
+  );
 
   // Don't render tabs until we know the user role
   if (isLoading || !userRole) {
