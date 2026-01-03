@@ -102,7 +102,25 @@ export default function EarnerTaskMarket({
       );
     }
     
-    // Group tasks
+    // Apply sorting FIRST (globally, before grouping)
+    filtered.sort((a, b) => {
+      if (sortBy === 'pay') {
+        return b.credits - a.credits; // Highest pay first
+      } else if (sortBy === 'time') {
+        // Parse time estimate (e.g., "20 min" -> 20)
+        const timeA = parseInt(a.timeEstimate) || 0;
+        const timeB = parseInt(b.timeEstimate) || 0;
+        return timeA - timeB; // Shortest time first
+      } else { // sortBy === 'value' (pay per minute)
+        const timeA = parseInt(a.timeEstimate) || 1;
+        const timeB = parseInt(b.timeEstimate) || 1;
+        const valueA = a.credits / timeA;
+        const valueB = b.credits / timeB;
+        return valueB - valueA; // Highest value per minute first
+      }
+    });
+    
+    // Then group tasks (maintaining sort order)
     if (groupBy === 'none') {
       return { 'All Tasks': filtered };
     } else if (groupBy === 'category') {
@@ -111,25 +129,6 @@ export default function EarnerTaskMarket({
         const cat = task.category || 'Other';
         if (!groups[cat]) groups[cat] = [];
         groups[cat].push(task);
-      });
-      // Sort each group based on sortBy
-      Object.keys(groups).forEach(key => {
-        groups[key].sort((a, b) => {
-          if (sortBy === 'pay') {
-            return b.credits - a.credits; // Highest pay first
-          } else if (sortBy === 'time') {
-            // Parse time estimate (e.g., "20 min" -> 20)
-            const timeA = parseInt(a.timeEstimate) || 0;
-            const timeB = parseInt(b.timeEstimate) || 0;
-            return timeA - timeB; // Shortest time first
-          } else { // sortBy === 'value' (pay per minute)
-            const timeA = parseInt(a.timeEstimate) || 1;
-            const timeB = parseInt(b.timeEstimate) || 1;
-            const valueA = a.credits / timeA;
-            const valueB = b.credits / timeB;
-            return valueB - valueA; // Highest value per minute first
-          }
-        });
       });
       return groups;
     } else { // groupBy === 'pay'
