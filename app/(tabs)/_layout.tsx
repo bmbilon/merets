@@ -85,7 +85,7 @@ export default function TabLayout() {
         },
       }}>
       
-      {/* First Tab - Browse for Earners, Dashboard for Parents */}
+      {/* Tab 1: Browse (earner) / Dashboard (parent) - ALWAYS VISIBLE */}
       <Tabs.Screen
         name="index"
         options={{
@@ -100,49 +100,47 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Second Tab - My Tasks for Earners, Tasks for Parents */}
-      {isEarner && (
-        <Tabs.Screen
-          name="my-tasks"
-          options={{
-            title: 'My Tasks',
-            tabBarIcon: ({ color }) => <IconSymbol size={24} name="list.clipboard" color={color} />,
-          }}
-        />
-      )}
+      {/* Tab 2: My Tasks (earner only) */}
+      <Tabs.Screen
+        name="my-tasks"
+        options={{
+          title: 'My Tasks',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="list.clipboard" color={color} />,
+          href: isEarner ? '/my-tasks' : null,
+        }}
+      />
 
-      {isParent && (
-        <Tabs.Screen
-          name="parent"
-          options={{
-            title: 'Tasks',
-            tabBarIcon: ({ color }) => <IconSymbol size={24} name="checkmark.seal.fill" color={color} />,
-          }}
-        />
-      )}
+      {/* Tab 2: Tasks (parent only) */}
+      <Tabs.Screen
+        name="parent"
+        options={{
+          title: 'Tasks',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="checkmark.seal.fill" color={color} />,
+          href: isParent ? '/parent' : null,
+        }}
+      />
 
-      {/* Third Tab - Stats for Earners, Payouts for Parents */}
-      {isEarner && (
-        <Tabs.Screen
-          name="skills"
-          options={{
-            title: 'Stats',
-            tabBarIcon: ({ color }) => <IconSymbol size={24} name="chart.bar.fill" color={color} />,
-          }}
-        />
-      )}
+      {/* Tab 3: Stats (earner only) */}
+      <Tabs.Screen
+        name="skills"
+        options={{
+          title: 'Stats',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="chart.bar.fill" color={color} />,
+          href: isEarner ? '/skills' : null,
+        }}
+      />
 
-      {isParent && (
-        <Tabs.Screen
-          name="payouts"
-          options={{
-            title: 'Payouts',
-            tabBarIcon: ({ color }) => <IconSymbol size={24} name="banknote" color={color} />,
-          }}
-        />
-      )}
+      {/* Tab 3: Payouts (parent only) */}
+      <Tabs.Screen
+        name="payouts"
+        options={{
+          title: 'Payouts',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="banknote" color={color} />,
+          href: isParent ? '/payouts' : null,
+        }}
+      />
 
-      {/* Fourth Tab - Inbox for Everyone */}
+      {/* Tab 4: Inbox - ALWAYS VISIBLE */}
       <Tabs.Screen
         name="inbox"
         options={{
@@ -151,7 +149,7 @@ export default function TabLayout() {
         }}
       />
       
-      {/* Hidden screens - these need href: null to prevent them from showing */}
+      {/* Hidden screens */}
       <Tabs.Screen
         name="family-chat"
         options={{
@@ -182,20 +180,6 @@ export default function TabLayout() {
           href: null,
         }}
       />
-
-      {/* Hide tabs that shouldn't be accessible by this role */}
-      {isEarner && (
-        <>
-          <Tabs.Screen name="parent" options={{ href: null }} />
-          <Tabs.Screen name="payouts" options={{ href: null }} />
-        </>
-      )}
-      {isParent && (
-        <>
-          <Tabs.Screen name="my-tasks" options={{ href: null }} />
-          <Tabs.Screen name="skills" options={{ href: null }} />
-        </>
-      )}
     </Tabs>
   );
 }
