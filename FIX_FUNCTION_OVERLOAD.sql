@@ -1,4 +1,5 @@
 -- Fix function overloading conflict by dropping all versions and creating one correct version
+-- This version matches the ACTUAL database schema
 
 -- Drop both versions of the function
 DROP FUNCTION IF EXISTS approve_submission(uuid, integer, integer, text, uuid);
@@ -27,7 +28,7 @@ DECLARE
   v_total_pay_cents INTEGER;
   v_earner_id UUID;
 BEGIN
-  -- Get commitment details
+  -- Get commitment details from submission
   SELECT 
     c.id,
     c.effort_minutes,
@@ -66,23 +67,20 @@ BEGIN
   -- Calculate total pay (base + bonus)
   v_total_pay_cents := v_base_pay_cents + p_bonus_tip_cents;
 
-  -- Update commitment
+  -- Update commitment status
   UPDATE commitments
   SET 
-    status = 'approved',
-    quality_rating = p_quality_rating,
-    approved_at = NOW(),
-    reviewed_by = p_reviewed_by,
-    reviewer_notes = p_reviewer_notes,
-    bonus_tip_cents = p_bonus_tip_cents,
-    merets_earned = v_merets_earned,
-    final_pay_cents = v_total_pay_cents
+    status = 'completed'
   WHERE id = v_commitment_id;
 
-  -- Update submission status
+  -- Update submission with approval details
   UPDATE commitment_submissions
   SET 
     submission_status = 'approved',
+    quality_rating = p_quality_rating,
+    bonus_tip_cents = p_bonus_tip_cents,
+    reviewer_notes = p_reviewer_notes,
+    reviewed_by = p_reviewed_by,
     reviewed_at = NOW()
   WHERE id = p_submission_id;
 
