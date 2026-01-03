@@ -56,17 +56,7 @@ export default function MainApp() {
   const handleSwitchUser = async () => {
     console.log('[Index] Switch user pressed - clearing AsyncStorage');
     await AsyncStorage.removeItem("selected_user");
-    // Force reload by setting state to null
-    setSelectedUser(null);
-    // Reload the page to trigger AuthGate
-    setTimeout(() => {
-      loadUser();
-    }, 100);
-  };
-
-  const loadUser = async () => {
-    const user = await AsyncStorage.getItem("selected_user");
-    setSelectedUser(user);
+    // AuthGate will detect the change and show user selection
   };
 
   switch (selectedUser) {

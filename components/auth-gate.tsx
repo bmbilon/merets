@@ -22,7 +22,29 @@ export default function AuthGate({ children, onAuthComplete }: AuthGateProps) {
 
   useEffect(() => {
     loadUser();
+    
+    // Poll AsyncStorage every second to detect changes
+    const interval = setInterval(() => {
+      checkUserChange();
+    }, 1000);
+    
+    return () => clearInterval(interval);
   }, []);
+  
+  const checkUserChange = async () => {
+    try {
+      const user = await AsyncStorage.getItem(USER_KEY);
+      if (user !== selectedUser) {
+        console.log('[AuthGate] User changed from', selectedUser, 'to', user);
+        setSelectedUser(user as User | null);
+        if (user) {
+          onAuthComplete();
+        }
+      }
+    } catch (error) {
+      console.error('[AuthGate] Error checking user change:', error);
+    }
+  };
 
   const loadUser = async () => {
     try {
