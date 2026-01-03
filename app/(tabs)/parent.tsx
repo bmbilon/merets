@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, ScrollView } from "react-native";
 import { Text, Button, SegmentedButtons, FAB } from "react-native-paper";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ParentApprovalQueue from "@/components/ParentApprovalQueue";
 import { TaskMallAdmin } from "@/components/TaskMallAdmin";
 import SubmissionReviewModal from "@/components/SubmissionReviewModal";
@@ -25,9 +26,18 @@ export default function ParentScreen() {
 
   const fetchParentProfile = async () => {
     try {
-      const profile = await SupabaseService.getUserByName('Lauren');
+      // Get the actual logged-in user from AsyncStorage
+      const selectedUser = await AsyncStorage.getItem('selected_user');
+      if (!selectedUser) {
+        console.error('[PARENT] No user selected');
+        return;
+      }
+      
+      // Capitalize first letter for database lookup
+      const userName = selectedUser.charAt(0).toUpperCase() + selectedUser.slice(1);
+      const profile = await SupabaseService.getUserByName(userName);
       setParentProfile(profile);
-      console.log('[PARENT] Parent profile loaded:', profile?.name);
+      console.log('[PARENT] Parent profile loaded:', profile?.name, 'ID:', profile?.id);
     } catch (error) {
       console.error('Error fetching parent profile:', error);
     }
