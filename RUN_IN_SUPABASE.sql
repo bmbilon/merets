@@ -138,7 +138,7 @@ BEGIN
   SET 
     status = 'completed',
     completed_at = NOW(),
-    quality_rating = CAST(p_quality_rating AS VARCHAR),
+    quality_rating = p_quality_rating,
     actual_pay_cents = v_total_money_cents,
     parent_feedback = p_reviewer_notes,
     updated_at = NOW()

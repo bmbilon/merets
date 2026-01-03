@@ -105,7 +105,7 @@ export const TaskMallAdmin: React.FC<Props> = ({ onClose, parentProfile }) => {
   const loadCustomCategories = async () => {
     try {
       // Get all unique categories from existing tasks
-      const { data, error } = await SupabaseService.getSupabaseClient()
+      const { data, error } = await supabase
         .from('task_templates')
         .select('skill_category')
       
