@@ -83,39 +83,32 @@ export default function SubmitWorkModal({
   };
 
   const handleSubmit = async () => {
-    if (selectedPhotos.length === 0) {
-      Alert.alert('Photo required', 'Please add at least one photo of your completed work');
-      return;
-    }
-
     setSubmitting(true);
     try {
       console.log('[SUBMIT] Starting submission for commitment ID:', mentId);
       console.log('[SUBMIT] User ID:', userId);
-      console.log('[SUBMIT] Uploading photos...');
       
-      // Upload photos to Supabase storage
+      // Upload photos to Supabase storage (optional)
       const uploadedUrls: string[] = [];
-      for (const photoUri of selectedPhotos) {
-        console.log('[SUBMIT] Uploading photo:', photoUri);
-        const url = await SupabaseService.uploadPhoto(photoUri, userId);
-        if (url) {
-          uploadedUrls.push(url);
-          console.log('[SUBMIT] Photo uploaded:', url);
+      if (selectedPhotos.length > 0) {
+        console.log('[SUBMIT] Uploading photos...');
+        for (const photoUri of selectedPhotos) {
+          console.log('[SUBMIT] Uploading photo:', photoUri);
+          const url = await SupabaseService.uploadPhoto(photoUri, userId);
+          if (url) {
+            uploadedUrls.push(url);
+            console.log('[SUBMIT] Photo uploaded:', url);
+          }
         }
-      }
-
-      if (uploadedUrls.length === 0) {
-        throw new Error('Failed to upload photos');
       }
 
       console.log('[SUBMIT] Creating submission record...');
       
-      // Submit commitment
+      // Submit commitment (photos and notes are optional)
       const result = await SupabaseService.submitCommitment(
         mentId,
         uploadedUrls,
-        submissionNotes,
+        submissionNotes || 'Task completed',
         userId
       );
 
@@ -172,7 +165,7 @@ export default function SubmitWorkModal({
           {/* Photo Upload */}
           <View style={{ marginBottom: 20 }}>
             <Text variant="bodyLarge" style={{ marginBottom: 12, fontWeight: '600' }}>
-              Proof of Completion <Text style={{ color: '#f44336' }}>*</Text>
+              Proof of Completion <Text style={{ color: '#999' }}>(Optional)</Text>
             </Text>
             
             {/* Selected Photos */}
@@ -237,7 +230,7 @@ export default function SubmitWorkModal({
             )}
 
             <Text variant="bodySmall" style={{ color: '#999', marginTop: 8 }}>
-              Add 1-3 photos showing your completed work
+              Photos are optional - you can submit with just a click!
             </Text>
           </View>
 

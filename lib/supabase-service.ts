@@ -536,7 +536,7 @@ export class SupabaseService {
       const { data, error } = await supabase.rpc('approve_submission', {
         p_submission_id: submissionId,
         p_quality_rating: rating,
-        p_reviewer_id: reviewerId,
+        p_reviewed_by: reviewerId,
         p_reviewer_notes: reviewNotes || null,
         p_bonus_tip_cents: tipCents || 0
       });
