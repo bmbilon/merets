@@ -227,11 +227,11 @@ export default function SubmissionReviewModal({
                   ))}
                 </View>
                 <Text variant="bodySmall" style={{ textAlign: 'center', color: '#666', marginTop: 8 }}>
-                  {rating === 5 ? 'Perfect! 150% XP' : 
-                   rating === 4 ? 'Great! 125% XP' : 
-                   rating === 3 ? 'Good! 100% XP' :
-                   rating === 2 ? 'Needs work. 75% XP' :
-                   'Poor quality. 50% XP'}
+                  {rating === 5 ? 'Perfect! 150% MP' : 
+                   rating === 4 ? 'Great! 125% MP' : 
+                   rating === 3 ? 'Good! 100% MP' :
+                   rating === 2 ? 'Needs work. 75% MP' :
+                   'Poor quality. 50% MP'}
                 </Text>
               </View>
 
@@ -269,11 +269,11 @@ export default function SubmissionReviewModal({
                   ))}
                   <TextInput
                     mode="outlined"
-                    placeholder="Custom"
+                    placeholder="$"
                     value={tipAmount && !['1', '2', '5'].includes(tipAmount) ? tipAmount : ''}
                     onChangeText={setTipAmount}
                     keyboardType="decimal-pad"
-                    style={{ flex: 1, height: 40 }}
+                    style={{ flex: 1, height: 40, minWidth: 80 }}
                     dense
                   />
                 </View>
