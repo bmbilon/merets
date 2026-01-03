@@ -1,12 +1,13 @@
 name: Apply Supabase Migrations
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'supabase/migrations/**'
-      - 'supabase/config.toml'
+  # Disabled auto-run until SUPABASE_ACCESS_TOKEN is fixed
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'supabase/migrations/**'
+  #     - 'supabase/config.toml'
   workflow_dispatch:
 
 jobs:
