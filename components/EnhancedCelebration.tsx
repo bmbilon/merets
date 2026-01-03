@@ -119,8 +119,8 @@ export default function EnhancedCelebration({
             style={[
               styles.confetti,
               {
-                left: anim.x,
                 transform: [
+                  { translateX: anim.x },
                   { translateY: anim.y },
                   { rotate: anim.rotation.interpolate({
                     inputRange: [0, 360],
