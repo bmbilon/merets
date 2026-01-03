@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Provider as PaperProvider, Text } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StatsScreen from '@/components/StatsScreen';
@@ -13,6 +14,13 @@ export default function SkillsTab() {
   useEffect(() => {
     loadUser();
   }, []);
+
+  // Reload user when tab comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadUser();
+    }, [])
+  );
 
   const loadUser = async () => {
     try {

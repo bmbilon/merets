@@ -297,10 +297,10 @@ export default function EarnerTaskMarket({
             borderColor: 'rgba(255,255,255,0.3)'
           }}>
             <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginBottom: 2 }}>
-              Level
+              Rep Level
             </Text>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
-              {level} ⭐
+              {repScore}
             </Text>
           </View>
 
@@ -337,22 +337,7 @@ export default function EarnerTaskMarket({
           </View>
         </View>
 
-        {/* XP Progress Bar */}
-        <View style={{ marginBottom: 12 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10 }}>
-              {totalXP % 100} / 100 XP
-            </Text>
-            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10 }}>
-              Next: Level {level + 1}
-            </Text>
-          </View>
-          <ProgressBar 
-            progress={(totalXP % 100) / 100} 
-            color="#FFD700" 
-            style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.2)' }}
-          />
-        </View>
+
 
         {/* Search Bar */}
         <Searchbar
