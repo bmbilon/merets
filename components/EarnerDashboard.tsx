@@ -8,6 +8,7 @@ import StreakDisplay from './StreakDisplay';
 import Leaderboard from './Leaderboard';
 import LoadingState from './LoadingState';
 import EmptyState from './EmptyState';
+import EnhancedCelebration from './EnhancedCelebration';
 import { calculateMeretsProgress, meretsRequiredForLevel } from '@/lib/merets-helper';
 
 interface EarnerDashboardProps {
@@ -40,6 +41,7 @@ export default function EarnerDashboard({
   const [loading, setLoading] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [selectedCommitment, setSelectedCommitment] = useState<any>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
   const screenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
@@ -372,10 +374,17 @@ export default function EarnerDashboard({
           mentTitle={selectedCommitment.custom_title || 'Task'}
           userId={userId || ''}
           onSuccess={() => {
+            setShowCelebration(true);
             fetchActiveCommitments();
           }}
         />
       )}
+
+      {/* Confetti Celebration */}
+      <EnhancedCelebration 
+        visible={showCelebration}
+        onComplete={() => setShowCelebration(false)}
+      />
     </View>
   );
 }
