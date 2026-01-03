@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import EarnerDashboard from "@/components/EarnerDashboard";
 import { SupabaseService } from '../../lib/supabase-service';
@@ -18,6 +19,15 @@ export default function MyTasks() {
   useEffect(() => {
     loadUser();
   }, []);
+
+  // Refresh data when tab is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      if (selectedUser) {
+        loadUserStats(selectedUser);
+      }
+    }, [selectedUser])
+  );
 
   const loadUser = async () => {
     try {
