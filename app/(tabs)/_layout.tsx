@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import React, { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { userEvents, USER_SWITCHED_EVENT } from '@/lib/user-events';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -43,6 +44,20 @@ export default function TabLayout() {
   // Load on mount
   useEffect(() => {
     loadUserRole();
+  }, [loadUserRole]);
+
+  // Listen for user switch events
+  useEffect(() => {
+    const handleUserSwitch = (userId: string) => {
+      console.log('[TabLayout] User switch event received:', userId);
+      loadUserRole();
+    };
+
+    userEvents.on(USER_SWITCHED_EVENT, handleUserSwitch);
+
+    return () => {
+      userEvents.off(USER_SWITCHED_EVENT, handleUserSwitch);
+    };
   }, [loadUserRole]);
 
   // Reload whenever the screen comes into focus (user switches)

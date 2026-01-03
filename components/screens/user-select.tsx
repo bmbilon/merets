@@ -7,6 +7,7 @@ import {
   Avatar,
   Surface,
 } from "react-native-paper";
+import { notifyUserSwitch } from "@/lib/user-events";
 
 type User = "aveya" | "onyx" | "lauren" | "brett";
 
@@ -63,6 +64,7 @@ export default function UserSelectScreen({ onUserSelected }: UserSelectProps) {
   const handleUserSelect = async (user: User) => {
     setSelectedUser(user);
     await AsyncStorage.setItem(USER_KEY, user);
+    notifyUserSwitch(user); // Emit event for tab layout to listen
     onUserSelected(user);
   };
 
