@@ -179,7 +179,7 @@ BEGIN
             'Amazing! You leveled up to Rep Level ' || v_new_rep_level || '! ' ||
             COALESCE(v_reviewer_name, 'Your parent') || ' approved "' || v_task_title || 
             '" and gave you a $' || v_tip_display || ' bonus tip! You earned $' || v_money_display || 
-            ' and ' || v_total_merets || ' merets.' ||
+            ' and ' || v_total_merets || ' Merets.' ||
             CASE WHEN p_reviewer_notes IS NOT NULL THEN ' Feedback: "' || p_reviewer_notes || '"' ELSE '' END
           ELSE
             'Congratulations! You leveled up to Rep Level ' || v_new_rep_level || '! ' ||
@@ -193,12 +193,12 @@ BEGIN
             'Great job on "' || v_task_title || '"! ' || COALESCE(v_reviewer_name, 'Your parent') || 
             ' approved your work and gave you a $' || v_tip_display || 
             ' bonus tip! You earned $' || v_money_display || 
-            ' total and ' || v_total_merets || ' merets.' ||
+            ' total and ' || v_total_merets || ' Merets.' ||
             CASE WHEN p_reviewer_notes IS NOT NULL THEN ' Feedback: "' || p_reviewer_notes || '"' ELSE '' END
           ELSE
             'Great job on "' || v_task_title || '"! ' || COALESCE(v_reviewer_name, 'Your parent') || 
             ' approved your work. You earned $' || v_money_display || 
-            ' and ' || v_total_merets || ' merets.' ||
+            ' and ' || v_total_merets || ' Merets.' ||
             CASE WHEN p_reviewer_notes IS NOT NULL THEN ' Feedback: "' || p_reviewer_notes || '"' ELSE '' END
         END
     END,

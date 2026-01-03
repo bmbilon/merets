@@ -288,7 +288,7 @@ export default function EarnerTaskMarket({
                 }
                 const progress = calculateMeretsProgress(lifetimeMeters, repScore);
                 console.log('📊 Progress:', { lifetimeMeters, repScore, progress });
-                return `${Math.round(progress.meretsRemaining)} merets to Level ${repScore + 1}`;
+                return `${Math.round(progress.meretsRemaining)} Merets to Level ${repScore + 1}`;
               })()}
             </Text>
           </View>
@@ -313,10 +313,10 @@ export default function EarnerTaskMarket({
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.3)'
           }}>
-            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginBottom: 2 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 9, marginBottom: 2 }}>
               Earned
             </Text>
-            <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }} numberOfLines={1} ellipsizeMode="clip">
+            <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold' }} numberOfLines={1} ellipsizeMode="clip">
               ${totalEarnings.toFixed(2)}
             </Text>
           </View>
@@ -329,26 +329,10 @@ export default function EarnerTaskMarket({
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.3)'
           }}>
-            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginBottom: 2 }}>
-              Rep Level
-            </Text>
-            <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
-              {repScore}
-            </Text>
-          </View>
-
-          <View style={{ 
-            flex: 1, 
-            backgroundColor: 'rgba(255,255,255,0.2)', 
-            padding: 10, 
-            borderRadius: 10,
-            borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.3)'
-          }}>
-            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginBottom: 2 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 9, marginBottom: 2 }}>
               EXPH
             </Text>
-            <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
+            <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold' }} numberOfLines={1}>
               {experienceHours.toFixed(1)}h
             </Text>
           </View>
@@ -361,10 +345,10 @@ export default function EarnerTaskMarket({
             borderWidth: 1,
             borderColor: 'rgba(255,255,255,0.3)'
           }}>
-            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 10, marginBottom: 2 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 9, marginBottom: 2 }}>
               Streak 🔥
             </Text>
-            <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
+            <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold' }} numberOfLines={1}>
               {currentStreak}d
             </Text>
           </View>
