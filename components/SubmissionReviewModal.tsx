@@ -54,14 +54,12 @@ export default function SubmissionReviewModal({
       if (result.success) {
         console.log('[APPROVE] Success:', result);
         
-        const xpEarned = result.xp_earned || 0;
-        const creditsEarned = result.credits_earned || 0;
-        const tipEarned = result.tip_amount || 0;
-        const totalEarned = result.total_earned || 0;
+        const moneyEarnedCents = result.money_earned_cents || 0;
+        const meretsEarned = result.merets_earned || 0;
 
         Alert.alert(
           'Payment Sent! 🎉',
-          `${submission.commitment?.user?.name || 'Kid'} earned $${(totalEarned / 100).toFixed(2)}`,
+          `${submission.commitment?.user?.name || 'Kid'} earned $${(moneyEarnedCents / 100).toFixed(2)}`,
           [{ 
             text: 'OK', 
             onPress: () => {
