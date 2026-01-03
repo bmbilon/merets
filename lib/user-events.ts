@@ -1,9 +1,36 @@
-// Simple event emitter for user switch events
-import { EventEmitter } from 'events';
+// Simple event emitter for user switch events (React Native compatible)
 
-class UserEventEmitter extends EventEmitter {}
+type EventListener = (data: any) => void;
 
-export const userEvents = new UserEventEmitter();
+class SimpleEventEmitter {
+  private listeners: Map<string, EventListener[]> = new Map();
+
+  on(event: string, listener: EventListener) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, []);
+    }
+    this.listeners.get(event)!.push(listener);
+  }
+
+  off(event: string, listener: EventListener) {
+    const eventListeners = this.listeners.get(event);
+    if (eventListeners) {
+      const index = eventListeners.indexOf(listener);
+      if (index > -1) {
+        eventListeners.splice(index, 1);
+      }
+    }
+  }
+
+  emit(event: string, data?: any) {
+    const eventListeners = this.listeners.get(event);
+    if (eventListeners) {
+      eventListeners.forEach(listener => listener(data));
+    }
+  }
+}
+
+export const userEvents = new SimpleEventEmitter();
 
 export const USER_SWITCHED_EVENT = 'user_switched';
 
