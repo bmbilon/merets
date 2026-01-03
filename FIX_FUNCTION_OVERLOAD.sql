@@ -23,6 +23,7 @@ DECLARE
   v_base_pay_cents INTEGER;
   v_quality_multiplier NUMERIC;
   v_merets_earned NUMERIC;
+  v_hours_earned NUMERIC;
   v_total_pay_cents INTEGER;
   v_earner_id UUID;
 BEGIN
@@ -38,7 +39,7 @@ BEGIN
     v_base_pay_cents,
     v_earner_id
   FROM commitments c
-  INNER JOIN submissions s ON s.commitment_id = c.id
+  INNER JOIN commitment_submissions s ON s.commitment_id = c.id
   WHERE s.id = p_submission_id;
 
   IF v_commitment_id IS NULL THEN
@@ -46,10 +47,21 @@ BEGIN
   END IF;
 
   -- Calculate quality multiplier based on rating
-  v_quality_multiplier := quality_multiplier_for_rating(p_quality_rating);
+  -- 5★=120%, 4★=100%, 3★=70%, 2★=40%, 1★=20%
+  v_quality_multiplier := CASE p_quality_rating
+    WHEN 5 THEN 1.20
+    WHEN 4 THEN 1.00
+    WHEN 3 THEN 0.70
+    WHEN 2 THEN 0.40
+    WHEN 1 THEN 0.20
+    ELSE 1.00
+  END;
   
   -- Calculate merets earned (time × quality multiplier)
   v_merets_earned := (v_effort_minutes / 60.0) * v_quality_multiplier;
+  
+  -- Calculate raw hours for EXPH (without quality multiplier)
+  v_hours_earned := v_effort_minutes / 60.0;
   
   -- Calculate total pay (base + bonus)
   v_total_pay_cents := v_base_pay_cents + p_bonus_tip_cents;
@@ -68,9 +80,9 @@ BEGIN
   WHERE id = v_commitment_id;
 
   -- Update submission status
-  UPDATE submissions
+  UPDATE commitment_submissions
   SET 
-    status = 'approved',
+    submission_status = 'approved',
     reviewed_at = NOW()
   WHERE id = p_submission_id;
 
@@ -78,6 +90,7 @@ BEGIN
   UPDATE user_profiles
   SET 
     lifetime_merets = COALESCE(lifetime_merets, 0) + v_merets_earned,
+    experience_hours = COALESCE(experience_hours, 0) + v_hours_earned,
     total_earnings_cents = COALESCE(total_earnings_cents, 0) + v_total_pay_cents,
     rep_score = calculate_rep_level(COALESCE(lifetime_merets, 0) + v_merets_earned),
     tasks_completed = COALESCE(tasks_completed, 0) + 1,
