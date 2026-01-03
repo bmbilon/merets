@@ -1,0 +1,12 @@
+[project]
+# Your Supabase project reference ID
+project_id = "bzogqqkptnbtnmpzvdca"
+
+[database]
+# Database connection settings
+port = 5432
+shadow_port = 54320
+
+[api]
+enabled = true
+port = 54321
