@@ -103,7 +103,7 @@ export default function TabLayout() {
         options={{
           title: 'My Tasks',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="list.clipboard" color={color} />,
-          tabBarButton: userRole === 'earner' ? HapticTab : () => null,
+          href: userRole === 'earner' ? '/my-tasks' : null,
         }}
       />
 
@@ -113,7 +113,7 @@ export default function TabLayout() {
         options={{
           title: 'Tasks',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="checkmark.seal.fill" color={color} />,
-          tabBarButton: (userRole === 'parent' || userRole === 'issuer') ? HapticTab : () => null,
+          href: (userRole === 'parent' || userRole === 'issuer') ? '/parent' : null,
         }}
       />
 
@@ -123,7 +123,7 @@ export default function TabLayout() {
         options={{
           title: 'Stats',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="chart.bar.fill" color={color} />,
-          tabBarButton: userRole === 'earner' ? HapticTab : () => null,
+          href: userRole === 'earner' ? '/skills' : null,
         }}
       />
 
@@ -133,7 +133,7 @@ export default function TabLayout() {
         options={{
           title: 'Payouts',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="banknote" color={color} />,
-          tabBarButton: (userRole === 'parent' || userRole === 'issuer') ? HapticTab : () => null,
+          href: (userRole === 'parent' || userRole === 'issuer') ? '/payouts' : null,
         }}
       />
 
