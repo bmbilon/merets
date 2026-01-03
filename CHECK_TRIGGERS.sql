@@ -1,0 +1,9 @@
+-- Check for triggers on user_profiles table
+SELECT 
+    trigger_name,
+    event_manipulation,
+    action_statement,
+    action_timing
+FROM information_schema.triggers
+WHERE event_object_table = 'user_profiles'
+ORDER BY trigger_name;

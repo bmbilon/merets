@@ -1,15 +1,12 @@
--- Migration: Fix ALL DECIMAL(3,2) overflow issues in triggers and functions
+-- Migration: Fix DECIMAL overflow in trigger functions
 -- Date: 2026-01-03
--- Issue: approve_submission() throws "numeric field overflow" despite column changes
--- Root cause: Trigger functions have hardcoded DECIMAL(3,2) in variable declarations
+-- Issue: Triggers use DECIMAL(3,2) causing overflow when values exceed 9.99
+-- Fix: Change all DECIMAL(3,2) to DECIMAL(5,2) in trigger function variable declarations
 
 -- ============================================================================
--- STEP 1: Drop and recreate update_rep_on_event trigger function
--- This is the main culprit - it calculates reputation metrics
+-- STEP 1: Fix update_rep_on_event trigger function
+-- This calculates reputation metrics and was using DECIMAL(3,2)
 -- ============================================================================
-
-DROP TRIGGER IF EXISTS update_rep_on_event ON commitment_submissions;
-DROP FUNCTION IF EXISTS update_rep_on_event() CASCADE;
 
 CREATE OR REPLACE FUNCTION update_rep_on_event()
 RETURNS TRIGGER AS $$
@@ -26,20 +23,20 @@ DECLARE
     v_max_streak INTEGER;
 BEGIN
     -- Only process approved submissions
-    IF NEW.status = 'approved' AND (OLD.status IS NULL OR OLD.status != 'approved') THEN
+    IF NEW.submission_status = 'approved' AND (OLD.submission_status IS NULL OR OLD.submission_status != 'approved') THEN
         
         -- Get task details
         SELECT base_reward, urgency_multiplier
         INTO v_task_reward, v_task_urgency
         FROM task_templates
-        WHERE id = NEW.task_id;
+        WHERE id = (SELECT task_id FROM commitments WHERE id = NEW.commitment_id);
         
-        -- Get submission details (with safe defaults)
-        v_quality_rating := COALESCE(NEW.quality_rating, 3.0);
-        v_bonus_tip := COALESCE(NEW.bonus_tip, 0.0);
+        -- Get submission details (convert cents to dollars for bonus_tip)
+        v_quality_rating := COALESCE(NEW.quality_rating::DECIMAL, 3.0);
+        v_bonus_tip := COALESCE(NEW.bonus_tip_cents::DECIMAL / 100.0, 0.0);
         v_total_earned := v_task_reward + v_bonus_tip;
         
-        -- Calculate quality average (normalize to 0-1 scale)
+        -- Calculate quality average (normalize to 0-1 scale, quality_rating is 1-5)
         v_quality_avg := v_quality_rating / 5.0;
         
         -- Calculate volume bonus (cap at 2.0)
@@ -49,7 +46,7 @@ BEGIN
         SELECT current_streak, max_streak
         INTO v_current_streak, v_max_streak
         FROM user_profiles
-        WHERE user_id = NEW.kid_id;
+        WHERE user_id = NEW.submitted_by;
         
         -- Calculate consistency score based on streak (cap at 2.0)
         v_consistency_score := LEAST(2.0, 1.0 + (COALESCE(v_current_streak, 0)::DECIMAL / 30.0));
@@ -68,9 +65,9 @@ BEGIN
             rep_delta,
             created_at
         ) VALUES (
-            NEW.kid_id,
+            NEW.submitted_by,
             'task_completion',
-            NEW.task_id,
+            (SELECT task_id FROM commitments WHERE id = NEW.commitment_id),
             NEW.commitment_id,
             v_quality_avg,
             v_volume_bonus,
@@ -92,7 +89,7 @@ BEGIN
             ),
             consistency_score = v_consistency_score,
             updated_at = NOW()
-        WHERE user_id = NEW.kid_id;
+        WHERE user_id = NEW.submitted_by;
         
     END IF;
     
@@ -100,18 +97,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Recreate the trigger
-CREATE TRIGGER update_rep_on_event
-    AFTER UPDATE OF status ON commitment_submissions
-    FOR EACH ROW
-    EXECUTE FUNCTION update_rep_on_event();
-
 -- ============================================================================
 -- STEP 2: Fix on_commitment_status_change_update_rep trigger function
 -- ============================================================================
-
-DROP TRIGGER IF EXISTS on_commitment_status_change_update_rep ON commitment_submissions;
-DROP FUNCTION IF EXISTS on_commitment_status_change_update_rep() CASCADE;
 
 CREATE OR REPLACE FUNCTION on_commitment_status_change_update_rep()
 RETURNS TRIGGER AS $$
@@ -122,17 +110,18 @@ DECLARE
     v_urgency DECIMAL(5,2);
 BEGIN
     -- Only process approved submissions
-    IF NEW.status = 'approved' AND (OLD.status IS NULL OR OLD.status != 'approved') THEN
+    IF NEW.submission_status = 'approved' AND (OLD.submission_status IS NULL OR OLD.submission_status != 'approved') THEN
         
         -- Get task reward and urgency
         SELECT base_reward, urgency_multiplier
         INTO v_task_reward, v_urgency
-        FROM task_templates
-        WHERE id = NEW.task_id;
+        FROM task_templates tt
+        JOIN commitments c ON c.task_id = tt.id
+        WHERE c.id = NEW.commitment_id;
         
-        -- Get submission details
-        v_quality_rating := COALESCE(NEW.quality_rating, 3.0);
-        v_bonus_tip := COALESCE(NEW.bonus_tip, 0.0);
+        -- Get submission details (convert cents to dollars)
+        v_quality_rating := COALESCE(NEW.quality_rating::DECIMAL, 3.0);
+        v_bonus_tip := COALESCE(NEW.bonus_tip_cents::DECIMAL / 100.0, 0.0);
         
         -- Update user profile
         UPDATE user_profiles
@@ -144,7 +133,7 @@ BEGIN
                 / (COALESCE(total_tasks_completed, 0) + 1)
             ),
             updated_at = NOW()
-        WHERE user_id = NEW.kid_id;
+        WHERE user_id = NEW.submitted_by;
         
     END IF;
     
@@ -152,14 +141,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Recreate the trigger
-CREATE TRIGGER on_commitment_status_change_update_rep
-    AFTER UPDATE OF status ON commitment_submissions
-    FOR EACH ROW
-    EXECUTE FUNCTION on_commitment_status_change_update_rep();
-
 -- ============================================================================
--- STEP 3: Verify update_user_streak function doesn't have DECIMAL issues
+-- STEP 3: Verify update_user_streak function has correct types
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION update_user_streak(p_user_id UUID)
@@ -171,10 +154,10 @@ DECLARE
     v_days_since_last INTEGER;
 BEGIN
     -- Get last approved submission
-    SELECT MAX(approved_at)
+    SELECT MAX(reviewed_at)
     INTO v_last_completion
     FROM commitment_submissions
-    WHERE kid_id = p_user_id AND status = 'approved';
+    WHERE submitted_by = p_user_id AND submission_status = 'approved';
     
     -- Get current streak info
     SELECT current_streak, max_streak
@@ -212,19 +195,20 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ============================================================================
--- STEP 4: Verify approve_submission function has correct DECIMAL types
+-- STEP 4: Update approve_submission function to use correct column names
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION approve_submission(
     p_submission_id UUID,
     p_parent_id UUID,
-    p_quality_rating DECIMAL(5,2),
-    p_bonus_tip DECIMAL(10,2) DEFAULT 0,
+    p_quality_rating INTEGER,
+    p_bonus_tip_cents INTEGER DEFAULT 0,
     p_notes TEXT DEFAULT NULL
 )
 RETURNS JSON AS $$
 DECLARE
     v_submission commitment_submissions%ROWTYPE;
+    v_commitment commitments%ROWTYPE;
     v_task task_templates%ROWTYPE;
     v_kid_balance DECIMAL(10,2);
     v_parent_balance DECIMAL(10,2);
@@ -233,8 +217,8 @@ DECLARE
     v_result JSON;
 BEGIN
     -- Validate quality rating (1-5 scale)
-    IF p_quality_rating < 1.0 OR p_quality_rating > 5.0 THEN
-        RAISE EXCEPTION 'Quality rating must be between 1.0 and 5.0';
+    IF p_quality_rating < 1 OR p_quality_rating > 5 THEN
+        RAISE EXCEPTION 'Quality rating must be between 1 and 5';
     END IF;
     
     -- Get submission details
@@ -246,25 +230,30 @@ BEGIN
         RAISE EXCEPTION 'Submission not found';
     END IF;
     
-    IF v_submission.status != 'submitted' THEN
+    IF v_submission.submission_status != 'submitted' THEN
         RAISE EXCEPTION 'Submission is not in submitted status';
     END IF;
+    
+    -- Get commitment details
+    SELECT * INTO v_commitment
+    FROM commitments
+    WHERE id = v_submission.commitment_id;
     
     -- Get task details
     SELECT * INTO v_task
     FROM task_templates
-    WHERE id = v_submission.task_id;
+    WHERE id = v_commitment.task_id;
     
-    -- Calculate total payment
-    v_total_payment := v_task.base_reward + COALESCE(p_bonus_tip, 0.0);
+    -- Calculate total payment (bonus_tip is in cents, convert to dollars)
+    v_total_payment := v_task.base_reward + (p_bonus_tip_cents::DECIMAL / 100.0);
     
     -- Calculate XP (base 10 XP per task, bonus for quality)
-    v_xp_earned := 10 + FLOOR((p_quality_rating - 3.0) * 5.0)::INTEGER;
+    v_xp_earned := 10 + ((p_quality_rating - 3) * 5);
     
     -- Get current balances
     SELECT meret_balance INTO v_kid_balance
     FROM user_profiles
-    WHERE user_id = v_submission.kid_id;
+    WHERE user_id = v_submission.submitted_by;
     
     SELECT meret_balance INTO v_parent_balance
     FROM user_profiles
@@ -278,12 +267,12 @@ BEGIN
     -- Update submission status
     UPDATE commitment_submissions
     SET 
-        status = 'approved',
+        submission_status = 'approved',
         quality_rating = p_quality_rating,
-        bonus_tip = p_bonus_tip,
+        bonus_tip_cents = p_bonus_tip_cents,
         reviewer_notes = p_notes,
-        approved_at = NOW(),
-        approved_by = p_parent_id,
+        reviewed_at = NOW(),
+        reviewed_by = p_parent_id,
         updated_at = NOW()
     WHERE id = p_submission_id;
     
@@ -301,16 +290,16 @@ BEGIN
         total_tasks_completed = COALESCE(total_tasks_completed, 0) + 1,
         total_merets_earned = COALESCE(total_merets_earned, 0) + v_total_payment,
         updated_at = NOW()
-    WHERE user_id = v_submission.kid_id;
+    WHERE user_id = v_submission.submitted_by;
     
     -- Update user streak
-    PERFORM update_user_streak(v_submission.kid_id);
+    PERFORM update_user_streak(v_submission.submitted_by);
     
     -- Return result
     SELECT json_build_object(
         'success', true,
         'submission_id', p_submission_id,
-        'kid_id', v_submission.kid_id,
+        'kid_id', v_submission.submitted_by,
         'payment', v_total_payment,
         'xp_earned', v_xp_earned,
         'new_kid_balance', v_kid_balance + v_total_payment,
@@ -323,41 +312,61 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ============================================================================
--- STEP 5: Recreate the available_tasks_for_kids view (depends on updated columns)
+-- STEP 5: Create reject_submission function with correct column names
 -- ============================================================================
 
-DROP VIEW IF EXISTS available_tasks_for_kids CASCADE;
-
-CREATE OR REPLACE VIEW available_tasks_for_kids AS
-SELECT 
-    tt.id,
-    tt.title,
-    tt.description,
-    tt.base_reward,
-    tt.category,
-    tt.difficulty,
-    tt.estimated_duration,
-    tt.urgency_multiplier,
-    tt.household_id,
-    tt.issuer_id,
-    tt.created_at,
-    COUNT(DISTINCT c.id) as active_commitments,
-    tt.max_concurrent_commitments,
-    CASE 
-        WHEN COUNT(DISTINCT c.id) >= tt.max_concurrent_commitments THEN false
-        ELSE true
-    END as is_available
-FROM task_templates tt
-LEFT JOIN commitments c ON c.task_id = tt.id 
-    AND c.status IN ('active', 'in_progress')
-WHERE tt.is_active = true
-GROUP BY tt.id;
-
--- Grant permissions
-GRANT SELECT ON available_tasks_for_kids TO authenticated, anon;
+CREATE OR REPLACE FUNCTION reject_submission(
+    p_submission_id UUID,
+    p_parent_id UUID,
+    p_rejection_reason TEXT
+)
+RETURNS JSON AS $$
+DECLARE
+    v_submission commitment_submissions%ROWTYPE;
+    v_result JSON;
+BEGIN
+    -- Get submission details
+    SELECT * INTO v_submission
+    FROM commitment_submissions
+    WHERE id = p_submission_id;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Submission not found';
+    END IF;
+    
+    IF v_submission.submission_status != 'submitted' THEN
+        RAISE EXCEPTION 'Submission is not in submitted status';
+    END IF;
+    
+    -- Update submission status
+    UPDATE commitment_submissions
+    SET 
+        submission_status = 'rejected',
+        reviewer_notes = p_rejection_reason,
+        reviewed_at = NOW(),
+        reviewed_by = p_parent_id,
+        updated_at = NOW()
+    WHERE id = p_submission_id;
+    
+    -- Update commitment status back to in_progress
+    UPDATE commitments
+    SET status = 'in_progress'
+    WHERE id = v_submission.commitment_id;
+    
+    -- Return result
+    SELECT json_build_object(
+        'success', true,
+        'submission_id', p_submission_id,
+        'message', 'Submission rejected and returned to in progress'
+    ) INTO v_result;
+    
+    RETURN v_result;
+    
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ============================================================================
--- VERIFICATION: Check all DECIMAL columns are now (5,2) or larger
+-- VERIFICATION: Check all DECIMAL columns are (5,2) or larger
 -- ============================================================================
 
 DO $$

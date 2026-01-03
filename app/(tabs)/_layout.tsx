@@ -63,11 +63,11 @@ export default function TabLayout() {
         }}
       />
 
-      {/* My Ments - Earner only */}
+      {/* My Tasks - Earner only */}
       <Tabs.Screen
-        name="aveya-dashboard"
+        name="my-tasks"
         options={{
-          title: 'My Ments',
+          title: 'My Tasks',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="list.clipboard" color={color} />,
           href: userRole === 'earner' ? undefined : null,
         }}
@@ -115,6 +115,12 @@ export default function TabLayout() {
       {/* Hidden screens */}
       <Tabs.Screen
         name="family-chat"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="aveya-dashboard"
         options={{
           href: null,
         }}
