@@ -82,6 +82,7 @@ BEGIN
   WHERE cs.id = p_submission_id;
 
   -- Calculate quality multiplier based on star rating
+  -- 5★ = 120%, 4★ = 100%, 3★ = 70%, 2★ = 40%, 1★ = 20%
   v_quality_multiplier := CASE p_quality_rating
     WHEN 5 THEN 1.20
     WHEN 4 THEN 1.00

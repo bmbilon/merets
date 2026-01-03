@@ -226,10 +226,10 @@ export default function SubmissionReviewModal({
                 </View>
                 <Text variant="bodySmall" style={{ textAlign: 'center', color: '#666', marginTop: 8 }}>
                   {rating === 5 ? 'Perfect! 120% MP' : 
-                   rating === 4 ? 'Great! 110% MP' : 
-                   rating === 3 ? 'Good! 100% MP' :
-                   rating === 2 ? 'Needs work. 75% MP' :
-                   'Poor quality. 50% MP'}
+                   rating === 4 ? 'Great! 100% MP' : 
+                   rating === 3 ? 'Acceptable. 70% MP' :
+                   rating === 2 ? 'Needs work. 40% MP' :
+                   'Poor quality. 20% MP'}
                 </Text>
               </View>
 
