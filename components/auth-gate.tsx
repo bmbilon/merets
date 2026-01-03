@@ -34,12 +34,12 @@ export default function AuthGate({ children, onAuthComplete }: AuthGateProps) {
   const checkUserChange = async () => {
     try {
       const user = await AsyncStorage.getItem(USER_KEY);
+      // Only update if user actually changed
       if (user !== selectedUser) {
         console.log('[AuthGate] User changed from', selectedUser, 'to', user);
         setSelectedUser(user as User | null);
-        if (user) {
-          onAuthComplete();
-        }
+        // Don't call onAuthComplete here - it causes infinite loop
+        // The user selection flow will call it when needed
       }
     } catch (error) {
       console.error('[AuthGate] Error checking user change:', error);
