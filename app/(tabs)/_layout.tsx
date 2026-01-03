@@ -50,6 +50,9 @@ export default function TabLayout() {
 
   console.log('[TabLayout] Rendering tabs with userRole:', userRole);
 
+  const isEarner = userRole === 'earner';
+  const isParent = userRole === 'parent' || userRole === 'issuer';
+
   return (
     <Tabs
       key={`tabs-${userRole}`}
@@ -82,62 +85,64 @@ export default function TabLayout() {
         },
       }}>
       
-      {/* Browse/Dashboard - Shows for all, different content per role */}
+      {/* First Tab - Browse for Earners, Dashboard for Parents */}
       <Tabs.Screen
         name="index"
         options={{
-          title: userRole === 'earner' ? 'Browse' : 'Dashboard',
+          title: isEarner ? 'Browse' : 'Dashboard',
           tabBarIcon: ({ color }) => (
             <IconSymbol 
               size={24} 
-              name={userRole === 'earner' ? 'square.grid.2x2' : 'house.fill'} 
+              name={isEarner ? 'square.grid.2x2' : 'house.fill'} 
               color={color} 
             />
           ),
         }}
       />
 
-      {/* My Tasks - Earner only */}
-      <Tabs.Screen
-        name="my-tasks"
-        options={{
-          title: 'My Tasks',
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="list.clipboard" color={color} />,
-          href: userRole === 'earner' ? '/my-tasks' : null,
-        }}
-      />
+      {/* Second Tab - My Tasks for Earners, Tasks for Parents */}
+      {isEarner && (
+        <Tabs.Screen
+          name="my-tasks"
+          options={{
+            title: 'My Tasks',
+            tabBarIcon: ({ color }) => <IconSymbol size={24} name="list.clipboard" color={color} />,
+          }}
+        />
+      )}
 
-      {/* Tasks - Parent shows this, Earner sees My Ments instead */}
-      <Tabs.Screen
-        name="parent"
-        options={{
-          title: 'Tasks',
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="checkmark.seal.fill" color={color} />,
-          href: (userRole === 'parent' || userRole === 'issuer') ? '/parent' : null,
-        }}
-      />
+      {isParent && (
+        <Tabs.Screen
+          name="parent"
+          options={{
+            title: 'Tasks',
+            tabBarIcon: ({ color }) => <IconSymbol size={24} name="checkmark.seal.fill" color={color} />,
+          }}
+        />
+      )}
 
-      {/* Stats - Earner only */}
-      <Tabs.Screen
-        name="skills"
-        options={{
-          title: 'Stats',
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="chart.bar.fill" color={color} />,
-          href: userRole === 'earner' ? '/skills' : null,
-        }}
-      />
+      {/* Third Tab - Stats for Earners, Payouts for Parents */}
+      {isEarner && (
+        <Tabs.Screen
+          name="skills"
+          options={{
+            title: 'Stats',
+            tabBarIcon: ({ color }) => <IconSymbol size={24} name="chart.bar.fill" color={color} />,
+          }}
+        />
+      )}
 
-      {/* Payouts - Parent only */}
-      <Tabs.Screen
-        name="payouts"
-        options={{
-          title: 'Payouts',
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="banknote" color={color} />,
-          href: (userRole === 'parent' || userRole === 'issuer') ? '/payouts' : null,
-        }}
-      />
+      {isParent && (
+        <Tabs.Screen
+          name="payouts"
+          options={{
+            title: 'Payouts',
+            tabBarIcon: ({ color }) => <IconSymbol size={24} name="banknote" color={color} />,
+          }}
+        />
+      )}
 
-      {/* Inbox - Shows for all */}
+      {/* Fourth Tab - Inbox for Everyone */}
       <Tabs.Screen
         name="inbox"
         options={{
@@ -146,7 +151,7 @@ export default function TabLayout() {
         }}
       />
       
-      {/* Hidden screens */}
+      {/* Hidden screens - these need href: null to prevent them from showing */}
       <Tabs.Screen
         name="family-chat"
         options={{
@@ -177,6 +182,20 @@ export default function TabLayout() {
           href: null,
         }}
       />
+
+      {/* Hide tabs that shouldn't be accessible by this role */}
+      {isEarner && (
+        <>
+          <Tabs.Screen name="parent" options={{ href: null }} />
+          <Tabs.Screen name="payouts" options={{ href: null }} />
+        </>
+      )}
+      {isParent && (
+        <>
+          <Tabs.Screen name="my-tasks" options={{ href: null }} />
+          <Tabs.Screen name="skills" options={{ href: null }} />
+        </>
+      )}
     </Tabs>
   );
 }
