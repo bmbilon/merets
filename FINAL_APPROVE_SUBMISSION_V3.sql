@@ -3,7 +3,7 @@
 -- A) FOR UPDATE lock
 -- B) reviewed_by null check
 -- C) completed_at consistency
--- D) task_approved (verified in constraint)
+-- D. work_approved (matches actual DB constraint)t)
 
 DROP FUNCTION IF EXISTS approve_submission(uuid, integer, uuid, text, integer);
 
@@ -128,7 +128,7 @@ BEGIN
     action_data
   ) VALUES (
     v_earner_id,
-    'task_approved',
+    'work_approved',
     'Task Approved! 🎉',
     format(
       'Your task was approved with %s stars! You earned %s Merets and $%s',
@@ -196,5 +196,5 @@ CREATE TRIGGER trigger_auto_update_rep
 -- A. FOR UPDATE lock (prevents race conditions)
 -- B. reviewed_by null check
 -- C. completed_at consistency (sets both time_completed and completed_at)
--- D. task_approved verified in constraint
+-- D. work_approved (actual constraint value, not task_approved)
 -- ============================================================================
