@@ -147,24 +147,24 @@ export default function SubmitWorkModal({
         onDismiss={onDismiss}
         contentContainerStyle={{
           backgroundColor: 'white',
-          padding: 20,
+          padding: 16,
           margin: 20,
           borderRadius: 16,
-          maxHeight: '85%'
+          maxHeight: '90%'
         }}
       >
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <Text variant="headlineSmall" style={{ fontWeight: 'bold', marginBottom: 8 }}>
+        <View>
+          <Text variant="headlineSmall" style={{ fontWeight: 'bold', marginBottom: 4 }}>
             Submit Your Work
           </Text>
 
-          <Text variant="titleMedium" style={{ marginBottom: 20, color: '#666' }}>
+          <Text variant="bodyMedium" style={{ marginBottom: 12, color: '#666' }}>
             {mentTitle}
           </Text>
 
           {/* Photo Upload */}
-          <View style={{ marginBottom: 20 }}>
-            <Text variant="bodyLarge" style={{ marginBottom: 12, fontWeight: '600' }}>
+          <View style={{ marginBottom: 12 }}>
+            <Text variant="bodyLarge" style={{ marginBottom: 8, fontWeight: '600' }}>
               Proof of Completion <Text style={{ color: '#999' }}>(Optional)</Text>
             </Text>
             
@@ -174,15 +174,15 @@ export default function SubmitWorkModal({
                 flexDirection: 'row', 
                 flexWrap: 'wrap', 
                 gap: 8, 
-                marginBottom: 12 
+                marginBottom: 8 
               }}>
                 {selectedPhotos.map((uri, index) => (
                   <View key={index} style={{ position: 'relative' }}>
                     <Image
                       source={{ uri }}
                       style={{ 
-                        width: 90, 
-                        height: 90, 
+                      width: 80, 
+                      height: 80,
                         borderRadius: 12,
                         backgroundColor: '#f0f0f0'
                       }}
@@ -213,7 +213,8 @@ export default function SubmitWorkModal({
                   icon="camera"
                   onPress={takePhoto}
                   style={{ flex: 1, borderRadius: 12 }}
-                  contentStyle={{ paddingVertical: 4 }}
+                  contentStyle={{ paddingVertical: 2 }}
+                  compact
                 >
                   Take Photo
                 </Button>
@@ -222,21 +223,22 @@ export default function SubmitWorkModal({
                   icon="image"
                   onPress={pickImage}
                   style={{ flex: 1, borderRadius: 12 }}
-                  contentStyle={{ paddingVertical: 4 }}
+                  contentStyle={{ paddingVertical: 2 }}
+                  compact
                 >
                   Choose ({selectedPhotos.length}/3)
                 </Button>
               </View>
             )}
 
-            <Text variant="bodySmall" style={{ color: '#999', marginTop: 8 }}>
+            <Text variant="bodySmall" style={{ color: '#999', marginTop: 4, fontSize: 11 }}>
               Photos are optional - you can submit with just a click!
             </Text>
           </View>
 
           {/* Notes */}
-          <View style={{ marginBottom: 24 }}>
-            <Text variant="bodyLarge" style={{ marginBottom: 8, fontWeight: '600' }}>
+          <View style={{ marginBottom: 12 }}>
+            <Text variant="bodyLarge" style={{ marginBottom: 6, fontWeight: '600' }}>
               Notes (Optional)
             </Text>
             <TextInput
@@ -245,22 +247,23 @@ export default function SubmitWorkModal({
               value={submissionNotes}
               onChangeText={setSubmissionNotes}
               multiline
-              numberOfLines={4}
-              style={{ borderRadius: 12 }}
+              numberOfLines={3}
+              style={{ borderRadius: 12, fontSize: 14 }}
               maxLength={500}
+              dense
             />
-            <Text variant="bodySmall" style={{ color: '#999', marginTop: 4 }}>
+            <Text variant="bodySmall" style={{ color: '#999', marginTop: 2, fontSize: 11 }}>
               {submissionNotes.length}/500 characters
             </Text>
           </View>
 
           {/* Action Buttons */}
-          <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={{ flexDirection: 'row', gap: 12, marginTop: 4 }}>
             <Button
               mode="outlined"
               onPress={onDismiss}
               style={{ flex: 1, borderRadius: 12 }}
-              contentStyle={{ paddingVertical: 8 }}
+              contentStyle={{ paddingVertical: 6 }}
               disabled={submitting}
             >
               Cancel
@@ -269,7 +272,7 @@ export default function SubmitWorkModal({
               mode="contained"
               onPress={handleSubmit}
               style={{ flex: 1, borderRadius: 12 }}
-              contentStyle={{ paddingVertical: 8 }}
+              contentStyle={{ paddingVertical: 6 }}
               buttonColor="#4CAF50"
               loading={submitting}
               disabled={submitting}
@@ -277,7 +280,7 @@ export default function SubmitWorkModal({
               Submit Work
             </Button>
           </View>
-        </ScrollView>
+        </View>
       </Modal>
     </Portal>
   );
