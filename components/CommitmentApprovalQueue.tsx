@@ -6,21 +6,49 @@ import LoadingState from './LoadingState';
 import EmptyState from './EmptyState';
 
 interface CommitmentApprovalQueueProps {
-  pendingCommitments: any[];
+  items: any[];
   loading?: boolean;
-  onApprove: (commitmentId: string) => void;
-  onDeny: (commitmentId: string) => void;
   onRefresh: () => void;
+  parentId?: string;
 }
 
 export default function CommitmentApprovalQueue({ 
-  pendingCommitments, 
+  items, 
   loading = false,
-  onApprove,
-  onDeny,
-  onRefresh
+  onRefresh,
+  parentId
 }: CommitmentApprovalQueueProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const handleApprove = async (commitmentId: string) => {
+    try {
+      const { SupabaseService } = await import('../lib/supabase-service');
+      const result = await SupabaseService.approveCommitment(commitmentId);
+      if (result.success) {
+        console.log('[CommitmentApprovalQueue] Commitment approved');
+        onRefresh();
+      } else {
+        console.error('[CommitmentApprovalQueue] Failed to approve:', result.error);
+      }
+    } catch (error) {
+      console.error('[CommitmentApprovalQueue] Error approving commitment:', error);
+    }
+  };
+
+  const handleDeny = async (commitmentId: string) => {
+    try {
+      const { SupabaseService } = await import('../lib/supabase-service');
+      const result = await SupabaseService.denyCommitment(commitmentId);
+      if (result.success) {
+        console.log('[CommitmentApprovalQueue] Commitment denied');
+        onRefresh();
+      } else {
+        console.error('[CommitmentApprovalQueue] Failed to deny:', result.error);
+      }
+    } catch (error) {
+      console.error('[CommitmentApprovalQueue] Error denying commitment:', error);
+    }
+  };
 
   const renderCommitmentCard = (commitment: any) => {
     const isExpanded = expandedId === commitment.id;
@@ -167,7 +195,7 @@ export default function CommitmentApprovalQueue({
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <Button
               mode="contained"
-              onPress={() => onApprove(commitment.id)}
+              onPress={() => handleApprove(commitment.id)}
               style={{ flex: 1, borderRadius: 12 }}
               buttonColor="#4CAF50"
             >
@@ -175,7 +203,7 @@ export default function CommitmentApprovalQueue({
             </Button>
             <Button
               mode="outlined"
-              onPress={() => onDeny(commitment.id)}
+              onPress={() => handleDeny(commitment.id)}
               style={{ flex: 1, borderRadius: 12 }}
               textColor="#F44336"
             >
@@ -191,7 +219,7 @@ export default function CommitmentApprovalQueue({
     return <LoadingState message="Loading commitment approvals..." />;
   }
 
-  if (pendingCommitments.length === 0) {
+  if (items.length === 0) {
     return (
       <EmptyState
         icon="checkmark.circle"
@@ -214,11 +242,11 @@ export default function CommitmentApprovalQueue({
           External Task Commitments
         </Text>
         <Text variant="bodySmall" style={{ color: '#666' }}>
-          {pendingCommitments.length} commitment{pendingCommitments.length !== 1 ? 's' : ''} awaiting your approval
+          {items.length} commitment{items.length !== 1 ? 's' : ''} awaiting your approval
         </Text>
       </View>
 
-      {pendingCommitments.map(renderCommitmentCard)}
+      {items.map(renderCommitmentCard)}
     </ScrollView>
   );
 }

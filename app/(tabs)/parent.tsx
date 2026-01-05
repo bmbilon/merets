@@ -1,180 +1,169 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, ScrollView } from "react-native";
-import { Text, Button, SegmentedButtons, FAB } from "react-native-paper";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Text, Button, SegmentedButtons, FAB, Divider } from "react-native-paper";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import ParentApprovalQueue from "@/components/ParentApprovalQueue";
 import CommitmentApprovalQueue from "@/components/CommitmentApprovalQueue";
 import { TaskMallAdmin } from "@/components/TaskMallAdmin";
 import SubmissionReviewModal from "@/components/SubmissionReviewModal";
 import EnhancedFinancialSummary from "@/components/EnhancedFinancialSummary";
-import { SupabaseService } from '../../lib/supabase-service';
+import { SupabaseService } from "../../lib/supabase-service";
 
 export default function ParentScreen() {
-  const [activeTab, setActiveTab] = useState<'approvals' | 'tasks' | 'financial'>('approvals');
+  const [activeTab, setActiveTab] = useState<"approvals" | "tasks" | "financial">("approvals");
+
+  // Queue A: commitment approvals (pre-work)
+  const [pendingCommitmentApprovals, setPendingCommitmentApprovals] = useState<any[]>([]);
+
+  // Queue B: submission reviews (post-work)
   const [pendingSubmissions, setPendingSubmissions] = useState<any[]>([]);
-  const [pendingCommitments, setPendingCommitments] = useState<any[]>([]);
+
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
+
   const [parentProfile, setParentProfile] = useState<any>(null);
 
-  useEffect(() => {
-    fetchParentProfile();
-    if (activeTab === 'approvals') {
-      fetchPendingSubmissions();
-      fetchPendingCommitments();
-    }
-  }, [activeTab]);
-
-  const fetchParentProfile = async () => {
+  const fetchParentProfile = useCallback(async () => {
     try {
-      // Get the actual logged-in user from AsyncStorage
-      const selectedUser = await AsyncStorage.getItem('selected_user');
+      const selectedUser = await AsyncStorage.getItem("selected_user");
       if (!selectedUser) {
-        console.error('[PARENT] No user selected');
-        return;
+        console.error("[PARENT] No user selected");
+        return null;
       }
-      
-      // Capitalize first letter for database lookup
+
       const userName = selectedUser.charAt(0).toUpperCase() + selectedUser.slice(1);
       const profile = await SupabaseService.getUserByName(userName);
-      setParentProfile(profile);
-      console.log('[PARENT] Parent profile loaded:', profile?.name, 'ID:', profile?.id);
-    } catch (error) {
-      console.error('Error fetching parent profile:', error);
-    }
-  };
 
-  const fetchPendingSubmissions = async () => {
+      setParentProfile(profile);
+      console.log("[PARENT] Parent profile loaded:", profile?.name, "ID:", profile?.id);
+      return profile;
+    } catch (error) {
+      console.error("Error fetching parent profile:", error);
+      return null;
+    }
+  }, []);
+
+  const fetchPendingCommitmentApprovals = useCallback(
+    async (parentId: string) => {
+      try {
+        console.log("[PARENT] Fetching pending COMMITMENT approvals...");
+        const commitments = await SupabaseService.getPendingCommitmentApprovals(parentId);
+        console.log("[PARENT] Found commitments needing approval:", commitments?.length ?? 0);
+        setPendingCommitmentApprovals(commitments || []);
+      } catch (error) {
+        console.error("Error fetching pending commitment approvals:", error);
+        setPendingCommitmentApprovals([]);
+      }
+    },
+    []
+  );
+
+  const fetchPendingSubmissions = useCallback(async () => {
+    try {
+      console.log("[PARENT] Fetching pending SUBMISSION reviews...");
+      const submissions = await SupabaseService.getPendingSubmissions();
+      console.log("[PARENT] Found submissions:", submissions?.length ?? 0);
+      setPendingSubmissions(submissions || []);
+    } catch (error) {
+      console.error("Error fetching pending submissions:", error);
+      setPendingSubmissions([]);
+    }
+  }, []);
+
+  const refreshApprovals = useCallback(async () => {
     setLoading(true);
     try {
-      console.log('[PARENT] Fetching pending submissions...');
-      const submissions = await SupabaseService.getPendingSubmissions();
-      console.log('[PARENT] Found submissions:', submissions.length);
-      setPendingSubmissions(submissions);
-    } catch (error) {
-      console.error('Error fetching pending submissions:', error);
+      // Ensure we have parent profile FIRST
+      const profile = parentProfile?.id ? parentProfile : await fetchParentProfile();
+      if (!profile?.id) return;
+
+      // Load both queues
+      await Promise.all([
+        fetchPendingCommitmentApprovals(profile.id),
+        fetchPendingSubmissions()
+      ]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [parentProfile, fetchParentProfile, fetchPendingCommitmentApprovals, fetchPendingSubmissions]);
 
-  const fetchPendingCommitments = async () => {
-    try {
-      console.log('[PARENT] Fetching pending commitments...');
-      const commitments = await SupabaseService.getPendingCommitmentApprovals();
-      console.log('[PARENT] Found commitments:', commitments.length);
-      setPendingCommitments(commitments);
-    } catch (error) {
-      console.error('Error fetching pending commitments:', error);
+  useEffect(() => {
+    // Always try to load profile when screen mounts/tab changes
+    // Only load approvals when in approvals tab
+    if (activeTab === "approvals") {
+      refreshApprovals();
+    } else {
+      fetchParentProfile();
     }
-  };
+  }, [activeTab, refreshApprovals, fetchParentProfile]);
 
   const handleReviewSubmission = (submission: any) => {
-    console.log('[PARENT] Opening review for submission:', submission.id);
+    console.log("[PARENT] Opening review for submission:", submission.id);
     setSelectedSubmission(submission);
     setShowReviewModal(true);
   };
 
   const handleReviewSuccess = () => {
-    console.log('[PARENT] Review completed, refreshing list');
-    fetchPendingSubmissions();
-  };
-
-  const handleApproveCommitment = async (commitmentId: string) => {
-    console.log('[PARENT] Approving commitment:', commitmentId);
-    const result = await SupabaseService.approveCommitment(commitmentId);
-    if (result.success) {
-      console.log('[PARENT] Commitment approved');
-      fetchPendingCommitments();
-    } else {
-      console.error('[PARENT] Failed to approve commitment:', result.error);
-    }
-  };
-
-  const handleDenyCommitment = async (commitmentId: string) => {
-    console.log('[PARENT] Denying commitment:', commitmentId);
-    const result = await SupabaseService.denyCommitment(commitmentId);
-    if (result.success) {
-      console.log('[PARENT] Commitment denied');
-      fetchPendingCommitments();
-    } else {
-      console.error('[PARENT] Failed to deny commitment:', result.error);
-    }
+    console.log("[PARENT] Review completed, refreshing list");
+    refreshApprovals();
   };
 
   if (showTaskManager) {
-    return (
-      <TaskMallAdmin 
-        onClose={() => setShowTaskManager(false)}
-      />
-    );
+    return <TaskMallAdmin onClose={() => setShowTaskManager(false)} />;
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+    <View style={{ flex: 1, backgroundColor: "#f5f5f5" }}>
       {/* Header */}
-      <View style={{ 
-        backgroundColor: '#fff',
-        paddingTop: 60,
-        paddingBottom: 16,
-        paddingHorizontal: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0'
-      }}>
-        <Text variant="headlineMedium" style={{ fontWeight: 'bold', marginBottom: 16 }}>
+      <View
+        style={{
+          backgroundColor: "#fff",
+          paddingTop: 60,
+          paddingBottom: 16,
+          paddingHorizontal: 20,
+          borderBottomWidth: 1,
+          borderBottomColor: "#e0e0e0"
+        }}
+      >
+        <Text variant="headlineMedium" style={{ fontWeight: "bold", marginBottom: 16 }}>
           Parent Dashboard
         </Text>
-        
-        {/* Tab Selector */}
+
         <SegmentedButtons
           value={activeTab}
-          onValueChange={(value) => setActiveTab(value as 'approvals' | 'tasks' | 'financial')}
+          onValueChange={(value) => setActiveTab(value as any)}
           buttons={[
-            {
-              value: 'approvals',
-              label: 'Approvals',
-              icon: 'check-circle-outline'
-            },
-            {
-              value: 'tasks',
-              label: 'Tasks',
-              icon: 'format-list-bulleted'
-            },
-            {
-              value: 'financial',
-              label: 'Financial',
-              icon: 'currency-usd'
-            }
+            { value: "approvals", label: "Approvals", icon: "check-circle-outline" },
+            { value: "tasks", label: "Tasks", icon: "format-list-bulleted" },
+            { value: "financial", label: "Financial", icon: "currency-usd" }
           ]}
         />
       </View>
 
       {/* Content */}
-      {activeTab === 'approvals' ? (
-        <ScrollView style={{ flex: 1 }}>
-          {/* Commitment Approvals (child wants to commit to task) */}
-          {pendingCommitments.length > 0 && (
-            <View style={{ marginBottom: 16 }}>
-              <CommitmentApprovalQueue
-                pendingCommitments={pendingCommitments}
-                loading={loading}
-                onApprove={handleApproveCommitment}
-                onDeny={handleDenyCommitment}
-                onRefresh={fetchPendingCommitments}
-              />
-            </View>
-          )}
-          
-          {/* Work Submissions (child completed work and needs review) */}
+      {activeTab === "approvals" ? (
+        <>
+          {/* Queue A: Commitment Approvals (pre-work parental approval) */}
+          <CommitmentApprovalQueue
+            loading={loading}
+            items={pendingCommitmentApprovals}
+            onRefresh={refreshApprovals}
+            parentId={parentProfile?.id}
+          />
+
+          <Divider style={{ marginVertical: 8 }} />
+
+          {/* Queue B: Submission Reviews (post-work quality review) */}
           <ParentApprovalQueue
             pendingSubmissions={pendingSubmissions}
             loading={loading}
             onReview={handleReviewSubmission}
-            onRefresh={fetchPendingSubmissions}
+            onRefresh={refreshApprovals}
           />
-          
+
           {selectedSubmission && parentProfile && (
             <SubmissionReviewModal
               visible={showReviewModal}
@@ -184,28 +173,25 @@ export default function ParentScreen() {
               onSuccess={handleReviewSuccess}
             />
           )}
-        </ScrollView>
-      ) : activeTab === 'tasks' ? (
+        </>
+      ) : activeTab === "tasks" ? (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
-          <View style={{ 
-            backgroundColor: '#fff',
-            borderRadius: 16,
-            padding: 24,
-            alignItems: 'center',
-            marginBottom: 16
-          }}>
-            <Text variant="titleLarge" style={{ fontWeight: 'bold', marginBottom: 8 }}>
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 16,
+              padding: 24,
+              alignItems: "center",
+              marginBottom: 16
+            }}
+          >
+            <Text variant="titleLarge" style={{ fontWeight: "bold", marginBottom: 8 }}>
               Task Manager
             </Text>
-            <Text variant="bodyMedium" style={{ color: '#666', textAlign: 'center', marginBottom: 16 }}>
+            <Text variant="bodyMedium" style={{ color: "#666", textAlign: "center", marginBottom: 16 }}>
               Create, edit, and manage household tasks for your kids
             </Text>
-            <Button 
-              mode="contained" 
-              onPress={() => setShowTaskManager(true)}
-              icon="plus"
-              style={{ borderRadius: 12 }}
-            >
+            <Button mode="contained" onPress={() => setShowTaskManager(true)} icon="plus" style={{ borderRadius: 12 }}>
               Open Task Manager
             </Button>
           </View>
@@ -214,16 +200,15 @@ export default function ParentScreen() {
         <EnhancedFinancialSummary />
       )}
 
-      {/* FAB for quick access to task manager */}
-      {activeTab === 'approvals' && (
+      {activeTab === "approvals" && (
         <FAB
           icon="plus"
           style={{
-            position: 'absolute',
+            position: "absolute",
             margin: 16,
             right: 0,
             bottom: 0,
-            backgroundColor: '#2196F3'
+            backgroundColor: "#2196F3"
           }}
           onPress={() => setShowTaskManager(true)}
         />

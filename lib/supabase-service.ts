@@ -571,8 +571,25 @@ export class SupabaseService {
   }
 
   // Get pending commitment approvals (when child commits to task and needs parent approval)
-  static async getPendingCommitmentApprovals() {
+  static async getPendingCommitmentApprovals(parentId: string) {
     try {
+      // First, get all earner IDs that this parent/guardian has a relationship with
+      const { data: relationships, error: relError } = await supabase
+        .from('family_relationships')
+        .select('earner_id')
+        .eq('issuer_id', parentId);
+
+      if (relError) throw relError;
+
+      // If no relationships found, return empty array
+      if (!relationships || relationships.length === 0) {
+        console.log('[SupabaseService] No family relationships found for parent:', parentId);
+        return [];
+      }
+
+      const earnerIds = relationships.map(r => r.earner_id);
+
+      // Now fetch commitments for those earners with pending_approval status
       const { data, error } = await supabase
         .from('commitments')
         .select(`
@@ -581,6 +598,7 @@ export class SupabaseService {
           user:user_profiles!commitments_user_id_fkey(*),
           issuer:user_profiles!commitments_issuer_id_fkey(*)
         `)
+        .in('user_id', earnerIds)
         .eq('status', 'pending_approval')
         .order('created_at', { ascending: true });
 
