@@ -54,7 +54,14 @@ export default function CommitmentApprovalQueue({
     const isExpanded = expandedId === commitment.id;
     const task = commitment.task || {};
     const earner = commitment.user || {};
-    const issuer = commitment.issuer || {};
+    
+    // Get issuer from commitment first, then fall back to task template issuer
+    // For family tasks, the issuer_id on task_templates should be set to the parent who created it
+    const issuer = commitment.issuer || task.issuer || {};
+    
+    // Determine if this is a family task or external task
+    const isFamilyTask = !commitment.issuer_id || issuer.role === 'parent';
+    const taskType = isFamilyTask ? 'Family Task' : 'External Task';
 
     return (
       <Surface
@@ -91,10 +98,10 @@ export default function CommitmentApprovalQueue({
             </View>
             <Chip
               compact
-              style={{ backgroundColor: '#E3F2FD' }}
-              textStyle={{ color: '#1976D2', fontWeight: '600' }}
+              style={{ backgroundColor: isFamilyTask ? '#E8F5E9' : '#E3F2FD' }}
+              textStyle={{ color: isFamilyTask ? '#2E7D32' : '#1976D2', fontWeight: '600' }}
             >
-              External Task
+              {taskType}
             </Chip>
           </View>
 
@@ -135,26 +142,28 @@ export default function CommitmentApprovalQueue({
 
           {/* Issuer Info */}
           <View style={{ 
-            backgroundColor: '#FFF3E0', 
+            backgroundColor: isFamilyTask ? '#E8F5E9' : '#FFF3E0', 
             padding: 12, 
             borderRadius: 12,
             marginBottom: 12
           }}>
-            <Text variant="labelMedium" style={{ color: '#E65100', marginBottom: 4 }}>
-              ⚠️ External Issuer
+            <Text variant="labelMedium" style={{ color: isFamilyTask ? '#2E7D32' : '#E65100', marginBottom: 4 }}>
+              {isFamilyTask ? '🏠 Family Task' : '⚠️ External Issuer'}
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Avatar.Text 
                 size={24} 
                 label={issuer.name?.[0] || '?'} 
-                style={{ backgroundColor: '#FF9800' }} 
+                style={{ backgroundColor: isFamilyTask ? '#4CAF50' : '#FF9800' }} 
               />
               <Text variant="bodyMedium" style={{ fontWeight: '600' }}>
-                {issuer.name || 'Unknown Issuer'}
+                {issuer.name || 'Family'}
               </Text>
             </View>
             <Text variant="bodySmall" style={{ color: '#666', marginTop: 4 }}>
-              This task is from someone outside your family. Your approval is required.
+              {isFamilyTask 
+                ? 'This task was created by a family member.'
+                : 'This task is from someone outside your family. Your approval is required.'}
             </Text>
           </View>
 

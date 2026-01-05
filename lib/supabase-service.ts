@@ -594,7 +594,10 @@ export class SupabaseService {
         .from('commitments')
         .select(`
           *,
-          task:task_templates!commitments_task_template_id_fkey(*),
+          task:task_templates!commitments_task_template_id_fkey(
+            *,
+            issuer:user_profiles!task_templates_issuer_id_fkey(*)
+          ),
           user:user_profiles!commitments_user_id_fkey(*),
           issuer:user_profiles!commitments_issuer_id_fkey(*)
         `)
