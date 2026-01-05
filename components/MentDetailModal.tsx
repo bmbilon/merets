@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, Modal } from 'react-native';
 import { Surface, Text, Button, Chip, Avatar, Divider, IconButton } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
@@ -30,15 +30,43 @@ interface MentDetailModalProps {
 export default function MentDetailModal({ visible, onDismiss, ment, onCommit }: MentDetailModalProps) {
   const [showContract, setShowContract] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  // Reset local state when modal is closed
+  useEffect(() => {
+    if (!visible) {
+      setShowContract(false);
+      setShowReceipt(false);
+      setIsClosing(false);
+    }
+  }, [visible]);
 
   if (!ment) return null;
 
   const handleCommit = () => {
-    setShowContract(false);
+    console.log('[COMMIT] Starting celebration!');
+
+    // Prevent Ment Details from ever reappearing while we close out
+    setIsClosing(true);
+
+    // Show celebration
     setShowReceipt(true);
+
+    // Fire commit (don't await — UI should stay snappy)
+    onCommit(ment.id);
+
+    // Close flow after celebration
     setTimeout(() => {
-      onCommit(ment.id);
-    }, 2000);
+      console.log('[COMMIT] Closing celebration + modals');
+
+      // 1) Close parent modal FIRST (prevents one-frame flash of details)
+      onDismiss();
+
+      // 2) Now reset local UI state
+      setShowReceipt(false);
+      setShowContract(false);
+      setIsClosing(false);
+    }, 2500);
   };
 
   const difficultyColor = {
@@ -50,7 +78,7 @@ export default function MentDetailModal({ visible, onDismiss, ment, onCommit }: 
   return (
     <>
       <Modal
-        visible={visible && !showContract}
+        visible={visible && !showContract && !isClosing}
         animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={onDismiss}

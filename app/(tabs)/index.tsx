@@ -262,7 +262,7 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
         skill_category: selectedTask.category,
         effort_minutes: parseInt(selectedTask.timeEstimate) || 30,
         pay_cents: Math.round(selectedTask.credits * 100),
-        status: 'in_progress'
+        status: 'pending_approval'  // Requires parent approval before starting
       });
 
       console.log('Commitment created:', commitment.id);
