@@ -53,11 +53,14 @@ export default function SubmissionReviewModal({
 
       console.log('[APPROVE] Result:', JSON.stringify(result, null, 2));
       
-      if (result.success) {
-        console.log('[APPROVE] Success:', result);
+      // Function returns array, get first element
+      const data = Array.isArray(result) ? result[0] : result;
+      
+      if (data && data.success) {
+        console.log('[APPROVE] Success:', data);
         
-        const moneyEarnedCents = result.money_earned_cents || 0;
-        const meretsEarned = result.merets_earned || 0;
+        const moneyEarnedCents = data.money_earned_cents || 0;
+        const meretsEarned = data.merets_earned || 0;
 
         Alert.alert(
           'Payment Sent! 🎉',
