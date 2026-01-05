@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, Text } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import EarnerDashboard from "@/components/EarnerDashboard";
+import LevelUpCelebration from "@/components/LevelUpCelebration";
 import { SupabaseService } from '../../lib/supabase-service';
 import { supabase } from '@/lib/supabase';
 
@@ -15,6 +16,11 @@ export default function MyTasks() {
   const [completedMents, setCompletedMents] = useState(0);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
+  
+  // Level-up celebration state
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [newLevel, setNewLevel] = useState(0);
+  const previousLevel = useRef<number>(0);
 
   useEffect(() => {
     loadUser();
@@ -50,11 +56,22 @@ export default function MyTasks() {
       const capitalizedName = userName.charAt(0).toUpperCase() + userName.slice(1);
       
       // Get user profile by name
-      const userProfile = await SupabaseService.getUserByName(capitalizedName);
+      const userProfile: any = await SupabaseService.getUserByName(capitalizedName);
       
       if (userProfile) {
         // Store user profile
         setUserProfile(userProfile);
+        
+        // Calculate level from rep score (1 level per 25 rep)
+        const currentLevel = Math.floor((userProfile.rep_score || 10) / 25);
+        
+        // Check for level-up
+        if (previousLevel.current > 0 && currentLevel > previousLevel.current) {
+          console.log(`[LEVEL UP] ${previousLevel.current} → ${currentLevel}`);
+          setNewLevel(currentLevel);
+          setShowLevelUp(true);
+        }
+        previousLevel.current = currentLevel;
         
         // Set rep and total earnings
         setRep(userProfile.rep_score || 10);
@@ -101,17 +118,25 @@ export default function MyTasks() {
   const userColor = selectedUser === 'aveya' ? '#E91E63' : '#2196F3';
 
   return (
-    <EarnerDashboard
-      userName={userName}
-      userColor={userColor}
-      rep={rep}
-      totalMerets={totalMerets}
-      totalCredits={totalCredits}
-      activeMents={activeMents}
-      completedMents={completedMents}
-      userId={userProfile?.id}
-      currentStreak={userProfile?.current_streak || 0}
-      longestStreak={userProfile?.longest_streak || 0}
-    />
+    <>
+      <EarnerDashboard
+        userName={userName}
+        userColor={userColor}
+        rep={rep}
+        totalMerets={totalMerets}
+        totalCredits={totalCredits}
+        activeMents={activeMents}
+        completedMents={completedMents}
+        userId={userProfile?.id}
+        currentStreak={userProfile?.current_streak || 0}
+        longestStreak={userProfile?.longest_streak || 0}
+      />
+      
+      <LevelUpCelebration
+        visible={showLevelUp}
+        level={newLevel}
+        onDismiss={() => setShowLevelUp(false)}
+      />
+    </>
   );
 }
