@@ -21,6 +21,7 @@ export default function MyTasks() {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [newLevel, setNewLevel] = useState(0);
   const previousLevel = useRef<number>(0);
+  const lastLevelUpTime = useRef<number>(0);
 
   useEffect(() => {
     loadUser();
@@ -30,7 +31,11 @@ export default function MyTasks() {
   useFocusEffect(
     React.useCallback(() => {
       if (selectedUser) {
-        loadUserStats(selectedUser);
+        // Prevent reload immediately after level-up celebration
+        const timeSinceLastLevelUp = Date.now() - lastLevelUpTime.current;
+        if (timeSinceLastLevelUp > 2000) {
+          loadUserStats(selectedUser);
+        }
       }
     }, [selectedUser])
   );
@@ -70,6 +75,7 @@ export default function MyTasks() {
           console.log(`[LEVEL UP] ${previousLevel.current} → ${currentLevel}`);
           setNewLevel(currentLevel);
           setShowLevelUp(true);
+          lastLevelUpTime.current = Date.now();
         }
         previousLevel.current = currentLevel;
         
@@ -135,7 +141,10 @@ export default function MyTasks() {
       <LevelUpCelebration
         visible={showLevelUp}
         level={newLevel}
-        onDismiss={() => setShowLevelUp(false)}
+        onDismiss={() => {
+          setShowLevelUp(false);
+          lastLevelUpTime.current = Date.now();
+        }}
       />
     </>
   );

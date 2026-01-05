@@ -152,7 +152,8 @@ export default function ParentScreen() {
       {activeTab === "approvals" ? (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
           {/* Queue A: Commitment Approvals (pre-work parental approval) */}
-          <Surface style={{ borderRadius: 16, marginBottom: 16, overflow: "hidden" }} elevation={1}>
+          <Surface style={{ borderRadius: 16, marginBottom: 16 }} elevation={1}>
+            <View style={{ overflow: "hidden", borderRadius: 16 }}>
             <TouchableOpacity
               onPress={() => setCommitmentSectionExpanded(!commitmentSectionExpanded)}
               style={{
@@ -198,10 +199,12 @@ export default function ParentScreen() {
                 />
               </View>
             )}
+            </View>
           </Surface>
 
           {/* Queue B: Submission Reviews (post-work quality review) */}
-          <Surface style={{ borderRadius: 16, marginBottom: 16, overflow: "hidden" }} elevation={1}>
+          <Surface style={{ borderRadius: 16, marginBottom: 16 }} elevation={1}>
+            <View style={{ overflow: "hidden", borderRadius: 16 }}>
             <TouchableOpacity
               onPress={() => setSubmissionSectionExpanded(!submissionSectionExpanded)}
               style={{
@@ -247,6 +250,7 @@ export default function ParentScreen() {
                 />
               </View>
             )}
+            </View>
           </Surface>
 
           {selectedSubmission && parentProfile && (
