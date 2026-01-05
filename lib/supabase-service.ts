@@ -619,7 +619,7 @@ export class SupabaseService {
       const { data, error } = await supabase
         .from('commitments')
         .update({ 
-          status: 'accepted',
+          status: 'in_progress',  // Changed from 'accepted' - approved tasks are ready to work on
           updated_at: new Date().toISOString()
         })
         .eq('id', commitmentId)
