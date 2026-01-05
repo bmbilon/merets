@@ -255,7 +255,8 @@ export default function EnhancedFinancialSummary() {
         <Text variant="titleLarge" style={{ fontWeight: 'bold', marginTop: 20, marginBottom: 12 }}>
           Recent Payments
         </Text>
-        <Surface style={{ borderRadius: 12, elevation: 2, overflow: 'hidden' }}>
+        <Surface style={{ borderRadius: 12, elevation: 2 }}>
+          <View style={{ overflow: 'hidden', borderRadius: 12 }}>
           {data.recentPayments.map((payment, index) => (
             <View key={index}>
               <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -277,6 +278,7 @@ export default function EnhancedFinancialSummary() {
               {index < data.recentPayments.length - 1 && <Divider />}
             </View>
           ))}
+          </View>
         </Surface>
       </View>
     </ScrollView>

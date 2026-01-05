@@ -144,7 +144,8 @@ export default function ProfileSettings({ userId, userName }: ProfileSettingsPro
         <Text variant="titleMedium" style={{ fontWeight: 'bold', marginBottom: 12 }}>
           Account
         </Text>
-        <Surface style={{ borderRadius: 12, marginBottom: 20, elevation: 2, overflow: 'hidden' }}>
+        <Surface style={{ borderRadius: 12, marginBottom: 20, elevation: 2 }}>
+          <View style={{ overflow: 'hidden', borderRadius: 12 }}>
           <TouchableOpacity 
             style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
             onPress={() => {/* Navigate to edit profile */}}
@@ -176,13 +177,15 @@ export default function ProfileSettings({ userId, userName }: ProfileSettingsPro
             </View>
             <Text style={{ color: '#7B1FA2', fontSize: 20 }}>›</Text>
           </TouchableOpacity>
+          </View>
         </Surface>
 
         {/* Notifications Section */}
         <Text variant="titleMedium" style={{ fontWeight: 'bold', marginBottom: 12 }}>
           Notifications
         </Text>
-        <Surface style={{ borderRadius: 12, marginBottom: 20, elevation: 2, overflow: 'hidden' }}>
+        <Surface style={{ borderRadius: 12, marginBottom: 20, elevation: 2 }}>
+          <View style={{ overflow: 'hidden', borderRadius: 12 }}>
           <View style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <View style={{ flex: 1 }}>
               <Text variant="titleSmall" style={{ fontWeight: 'bold' }}>
@@ -220,7 +223,8 @@ export default function ProfileSettings({ userId, userName }: ProfileSettingsPro
                 saveSetting('sound_enabled', value);
               }}
               color="#7B1FA2"
-            />
+            />  
+          </View>
           </View>
         </Surface>
 
@@ -228,7 +232,8 @@ export default function ProfileSettings({ userId, userName }: ProfileSettingsPro
         <Text variant="titleMedium" style={{ fontWeight: 'bold', marginBottom: 12 }}>
           About
         </Text>
-        <Surface style={{ borderRadius: 12, marginBottom: 20, elevation: 2, overflow: 'hidden' }}>
+        <Surface style={{ borderRadius: 12, marginBottom: 20, elevation: 2 }}>
+          <View style={{ overflow: 'hidden', borderRadius: 12 }}>
           <TouchableOpacity 
             style={{ padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
             onPress={() => {/* Navigate to help */}}
@@ -270,6 +275,7 @@ export default function ProfileSettings({ userId, userName }: ProfileSettingsPro
             <Text style={{ color: '#666', fontSize: 12 }}>
               Merets v1.0.0
             </Text>
+          </View>
           </View>
         </Surface>
 

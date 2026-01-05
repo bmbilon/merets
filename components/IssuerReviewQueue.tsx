@@ -219,12 +219,14 @@ export default function IssuerReviewQueue({
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }}>
                   <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 16 }}>
                     {ment.proofPhotos.map((photo, index) => (
-                      <Surface key={index} style={{ borderRadius: 12, overflow: 'hidden' }}>
-                        <Image
-                          source={{ uri: photo }}
-                          style={{ width: 120, height: 120 }}
-                          resizeMode="cover"
-                        />
+                      <Surface key={index} style={{ borderRadius: 12 }}>
+                        <View style={{ overflow: 'hidden', borderRadius: 12 }}>
+                          <Image
+                            source={{ uri: photo }}
+                            style={{ width: 120, height: 120 }}
+                            resizeMode="cover"
+                          />
+                        </View>
                       </Surface>
                     ))}
                   </View>
