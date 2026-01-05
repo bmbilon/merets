@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Modal } from 'react-native';
+import { View, ScrollView, Modal, Alert } from 'react-native';
 import { Surface, Text, Button, Chip, Avatar, Divider, IconButton } from 'react-native-paper';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import ReceiptCard from './ReceiptCard';
@@ -24,7 +24,7 @@ interface MentDetailModalProps {
   visible: boolean;
   onDismiss: () => void;
   ment: Ment | null;
-  onCommit: (mentId: string) => void;
+  onCommit: (mentId: string) => Promise<void>;
 }
 
 export default function MentDetailModal({ visible, onDismiss, ment, onCommit }: MentDetailModalProps) {
@@ -43,7 +43,7 @@ export default function MentDetailModal({ visible, onDismiss, ment, onCommit }: 
 
   if (!ment) return null;
 
-  const handleCommit = () => {
+  const handleCommit = async () => {
     console.log('[COMMIT] Starting celebration!');
 
     // Prevent Ment Details from ever reappearing while we close out
@@ -52,8 +52,17 @@ export default function MentDetailModal({ visible, onDismiss, ment, onCommit }: 
     // Show celebration
     setShowReceipt(true);
 
-    // Fire commit (don't await — UI should stay snappy)
-    onCommit(ment.id);
+    try {
+      // IMPORTANT: await the DB commit so we don't race UI transitions
+      await onCommit(ment.id);
+      console.log('[COMMIT] onCommit finished');
+    } catch (e) {
+      console.error('[COMMIT] onCommit failed:', e);
+      setShowReceipt(false);
+      setIsClosing(false);
+      Alert.alert('Error', 'Failed to commit. Please try again.');
+      return;
+    }
 
     // Close flow after celebration
     setTimeout(() => {

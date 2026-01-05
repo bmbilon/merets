@@ -175,10 +175,10 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
     fetchMents();
   }, []);
 
-  const fetchMents = async () => {
+  const fetchMents = async (opts?: { silent?: boolean }) => {
     try {
       console.log('[FETCH] Starting to fetch ments from Supabase...');
-      setLoading(true);
+      if (!opts?.silent) setLoading(true);
       
       const { data, error } = await supabase
         .from('task_templates')
@@ -234,8 +234,8 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
     } catch (error) {
       console.error('[EXCEPTION] Error in fetchMents:', error);
     } finally {
-      setLoading(false);
-      console.log('[FETCH] Fetch complete, loading set to false');
+      if (!opts?.silent) setLoading(false);
+      console.log('[FETCH] Fetch complete, loading set to', !opts?.silent ? 'false' : '(silent)');
     }
   };
 
@@ -293,8 +293,8 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
       // Show confetti celebration
       setShowCelebration(true);
       
-      // Refresh the ments list
-      await fetchMents();
+      // ❌ REMOVED: Don't refresh here - causes jank during fireworks
+      // Refresh will happen once after celebration completes
     } catch (error) {
       console.error('Error creating commitment:', error);
     }
@@ -344,9 +344,10 @@ function EarnerMarketplace({ userName, userColor, onSwitchUser }: { userName: st
       />
       <EnhancedCelebration
         visible={showCelebration}
-        onComplete={() => {
+        onComplete={async () => {
           setShowCelebration(false);
-          fetchMents(); // Refresh task list
+          // Single silent refresh AFTER celebration
+          await fetchMents({ silent: true });
         }}
       />
       {userId && <RepChangeToast userId={userId} />}
