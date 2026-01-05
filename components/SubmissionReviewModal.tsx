@@ -51,6 +51,8 @@ export default function SubmissionReviewModal({
         tipCents
       );
 
+      console.log('[APPROVE] Result:', JSON.stringify(result, null, 2));
+      
       if (result.success) {
         console.log('[APPROVE] Success:', result);
         
@@ -69,7 +71,9 @@ export default function SubmissionReviewModal({
           }]
         );
       } else {
-        throw new Error('Approval failed');
+        console.error('[APPROVE] Failed - result:', result);
+        console.error('[APPROVE] Error details:', result.error);
+        throw new Error(result.error?.message || 'Approval failed');
       }
     } catch (error) {
       console.error('[APPROVE] Error:', error);
