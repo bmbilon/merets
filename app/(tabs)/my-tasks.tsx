@@ -27,6 +27,48 @@ export default function MyTasks() {
     loadUser();
   }, []);
 
+  // Realtime subscription for rep_score updates
+  useEffect(() => {
+    if (!userProfile?.id) return;
+
+    console.log('[REALTIME] Setting up rep_score subscription for user:', userProfile.id);
+    
+    const channel = supabase
+      .channel(`user_profiles:${userProfile.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_profiles',
+          filter: `id=eq.${userProfile.id}`
+        },
+        (payload) => {
+          console.log('[REALTIME] Received rep_score update:', payload);
+          const newRep = payload.new.rep_score ?? 10;
+          const oldRep = previousLevel.current;
+          
+          // Update rep display
+          setRep(newRep);
+          
+          // Check for level-up (rep increased)
+          if (newRep > oldRep) {
+            console.log(`[LEVEL UP] Rep ${oldRep} → ${newRep}`);
+            setNewLevel(newRep);
+            setShowLevelUp(true);
+            lastLevelUpTime.current = Date.now();
+            previousLevel.current = newRep;
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('[REALTIME] Cleaning up rep_score subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [userProfile?.id]);
+
   // Refresh data when tab is focused
   useFocusEffect(
     React.useCallback(() => {
@@ -67,17 +109,23 @@ export default function MyTasks() {
         // Store user profile
         setUserProfile(userProfile);
         
-        // Calculate level from rep score (1 level per 25 rep)
-        const currentLevel = Math.floor((userProfile.rep_score || 10) / 25);
+        // Level equals rep_score 1:1 (rep 29 = level 29, rep 30 = level 30)
+        const currentLevel = userProfile.rep_score ?? 10;
         
-        // Check for level-up
+        // Check for level-up (only if we have a previous level)
         if (previousLevel.current > 0 && currentLevel > previousLevel.current) {
-          console.log(`[LEVEL UP] ${previousLevel.current} → ${currentLevel}`);
+          console.log(`[LEVEL UP] Rep ${previousLevel.current} → ${currentLevel}`);
           setNewLevel(currentLevel);
           setShowLevelUp(true);
           lastLevelUpTime.current = Date.now();
         }
-        previousLevel.current = currentLevel;
+        
+        // Initialize previousLevel on first load (don't trigger celebration)
+        if (previousLevel.current === 0) {
+          previousLevel.current = currentLevel;
+        } else {
+          previousLevel.current = currentLevel;
+        }
         
         // Set rep and total earnings
         setRep(userProfile.rep_score || 10);
