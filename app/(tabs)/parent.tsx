@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, ScrollView } from "react-native";
-import { Text, Button, SegmentedButtons, FAB, Divider } from "react-native-paper";
+import { View, ScrollView, TouchableOpacity } from "react-native";
+import { Text, Button, SegmentedButtons, FAB, Surface, Badge } from "react-native-paper";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ParentApprovalQueue from "@/components/ParentApprovalQueue";
 import CommitmentApprovalQueue from "@/components/CommitmentApprovalQueue";
@@ -25,6 +26,10 @@ export default function ParentScreen() {
   const [showReviewModal, setShowReviewModal] = useState(false);
 
   const [parentProfile, setParentProfile] = useState<any>(null);
+
+  // Collapsible section states
+  const [commitmentSectionExpanded, setCommitmentSectionExpanded] = useState(true);
+  const [submissionSectionExpanded, setSubmissionSectionExpanded] = useState(true);
 
   const fetchParentProfile = useCallback(async () => {
     try {
@@ -145,24 +150,104 @@ export default function ParentScreen() {
 
       {/* Content */}
       {activeTab === "approvals" ? (
-        <>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
           {/* Queue A: Commitment Approvals (pre-work parental approval) */}
-          <CommitmentApprovalQueue
-            loading={loading}
-            items={pendingCommitmentApprovals}
-            onRefresh={refreshApprovals}
-            parentId={parentProfile?.id}
-          />
+          <Surface style={{ borderRadius: 16, marginBottom: 16, overflow: "hidden" }} elevation={1}>
+            <TouchableOpacity
+              onPress={() => setCommitmentSectionExpanded(!commitmentSectionExpanded)}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: 16,
+                backgroundColor: "#fff"
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <IconSymbol size={24} name="clock.badge.checkmark" color="#2196F3" />
+                <View>
+                  <Text variant="titleMedium" style={{ fontWeight: "bold" }}>
+                    Task Commitments
+                  </Text>
+                  <Text variant="bodySmall" style={{ color: "#666" }}>
+                    Pre-work approval required
+                  </Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                {pendingCommitmentApprovals.length > 0 && (
+                  <Badge style={{ backgroundColor: "#2196F3" }}>
+                    {pendingCommitmentApprovals.length}
+                  </Badge>
+                )}
+                <IconSymbol
+                  size={20}
+                  name={commitmentSectionExpanded ? "chevron.up" : "chevron.down"}
+                  color="#666"
+                />
+              </View>
+            </TouchableOpacity>
 
-          <Divider style={{ marginVertical: 8 }} />
+            {commitmentSectionExpanded && (
+              <View style={{ borderTopWidth: 1, borderTopColor: "#e0e0e0" }}>
+                <CommitmentApprovalQueue
+                  loading={loading}
+                  items={pendingCommitmentApprovals}
+                  onRefresh={refreshApprovals}
+                  parentId={parentProfile?.id}
+                />
+              </View>
+            )}
+          </Surface>
 
           {/* Queue B: Submission Reviews (post-work quality review) */}
-          <ParentApprovalQueue
-            pendingSubmissions={pendingSubmissions}
-            loading={loading}
-            onReview={handleReviewSubmission}
-            onRefresh={refreshApprovals}
-          />
+          <Surface style={{ borderRadius: 16, marginBottom: 16, overflow: "hidden" }} elevation={1}>
+            <TouchableOpacity
+              onPress={() => setSubmissionSectionExpanded(!submissionSectionExpanded)}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: 16,
+                backgroundColor: "#fff"
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <IconSymbol size={24} name="star.circle" color="#FF9800" />
+                <View>
+                  <Text variant="titleMedium" style={{ fontWeight: "bold" }}>
+                    Work Submissions
+                  </Text>
+                  <Text variant="bodySmall" style={{ color: "#666" }}>
+                    Completed work ready for review
+                  </Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                {pendingSubmissions.length > 0 && (
+                  <Badge style={{ backgroundColor: "#FF9800" }}>
+                    {pendingSubmissions.length}
+                  </Badge>
+                )}
+                <IconSymbol
+                  size={20}
+                  name={submissionSectionExpanded ? "chevron.up" : "chevron.down"}
+                  color="#666"
+                />
+              </View>
+            </TouchableOpacity>
+
+            {submissionSectionExpanded && (
+              <View style={{ borderTopWidth: 1, borderTopColor: "#e0e0e0" }}>
+                <ParentApprovalQueue
+                  pendingSubmissions={pendingSubmissions}
+                  loading={loading}
+                  onReview={handleReviewSubmission}
+                  onRefresh={refreshApprovals}
+                />
+              </View>
+            )}
+          </Surface>
 
           {selectedSubmission && parentProfile && (
             <SubmissionReviewModal
@@ -173,7 +258,7 @@ export default function ParentScreen() {
               onSuccess={handleReviewSuccess}
             />
           )}
-        </>
+        </ScrollView>
       ) : activeTab === "tasks" ? (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
           <View
