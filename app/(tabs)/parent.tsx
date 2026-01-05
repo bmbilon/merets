@@ -3,6 +3,7 @@ import { View, ScrollView } from "react-native";
 import { Text, Button, SegmentedButtons, FAB } from "react-native-paper";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ParentApprovalQueue from "@/components/ParentApprovalQueue";
+import CommitmentApprovalQueue from "@/components/CommitmentApprovalQueue";
 import { TaskMallAdmin } from "@/components/TaskMallAdmin";
 import SubmissionReviewModal from "@/components/SubmissionReviewModal";
 import EnhancedFinancialSummary from "@/components/EnhancedFinancialSummary";
@@ -11,6 +12,7 @@ import { SupabaseService } from '../../lib/supabase-service';
 export default function ParentScreen() {
   const [activeTab, setActiveTab] = useState<'approvals' | 'tasks' | 'financial'>('approvals');
   const [pendingSubmissions, setPendingSubmissions] = useState<any[]>([]);
+  const [pendingCommitments, setPendingCommitments] = useState<any[]>([]);
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
@@ -21,6 +23,7 @@ export default function ParentScreen() {
     fetchParentProfile();
     if (activeTab === 'approvals') {
       fetchPendingSubmissions();
+      fetchPendingCommitments();
     }
   }, [activeTab]);
 
@@ -57,6 +60,17 @@ export default function ParentScreen() {
     }
   };
 
+  const fetchPendingCommitments = async () => {
+    try {
+      console.log('[PARENT] Fetching pending commitments...');
+      const commitments = await SupabaseService.getPendingCommitmentApprovals();
+      console.log('[PARENT] Found commitments:', commitments.length);
+      setPendingCommitments(commitments);
+    } catch (error) {
+      console.error('Error fetching pending commitments:', error);
+    }
+  };
+
   const handleReviewSubmission = (submission: any) => {
     console.log('[PARENT] Opening review for submission:', submission.id);
     setSelectedSubmission(submission);
@@ -66,6 +80,28 @@ export default function ParentScreen() {
   const handleReviewSuccess = () => {
     console.log('[PARENT] Review completed, refreshing list');
     fetchPendingSubmissions();
+  };
+
+  const handleApproveCommitment = async (commitmentId: string) => {
+    console.log('[PARENT] Approving commitment:', commitmentId);
+    const result = await SupabaseService.approveCommitment(commitmentId);
+    if (result.success) {
+      console.log('[PARENT] Commitment approved');
+      fetchPendingCommitments();
+    } else {
+      console.error('[PARENT] Failed to approve commitment:', result.error);
+    }
+  };
+
+  const handleDenyCommitment = async (commitmentId: string) => {
+    console.log('[PARENT] Denying commitment:', commitmentId);
+    const result = await SupabaseService.denyCommitment(commitmentId);
+    if (result.success) {
+      console.log('[PARENT] Commitment denied');
+      fetchPendingCommitments();
+    } else {
+      console.error('[PARENT] Failed to deny commitment:', result.error);
+    }
   };
 
   if (showTaskManager) {
@@ -117,7 +153,21 @@ export default function ParentScreen() {
 
       {/* Content */}
       {activeTab === 'approvals' ? (
-        <>
+        <ScrollView style={{ flex: 1 }}>
+          {/* Commitment Approvals (child wants to commit to task) */}
+          {pendingCommitments.length > 0 && (
+            <View style={{ marginBottom: 16 }}>
+              <CommitmentApprovalQueue
+                pendingCommitments={pendingCommitments}
+                loading={loading}
+                onApprove={handleApproveCommitment}
+                onDeny={handleDenyCommitment}
+                onRefresh={fetchPendingCommitments}
+              />
+            </View>
+          )}
+          
+          {/* Work Submissions (child completed work and needs review) */}
           <ParentApprovalQueue
             pendingSubmissions={pendingSubmissions}
             loading={loading}
@@ -134,7 +184,7 @@ export default function ParentScreen() {
               onSuccess={handleReviewSuccess}
             />
           )}
-        </>
+        </ScrollView>
       ) : activeTab === 'tasks' ? (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
           <View style={{ 

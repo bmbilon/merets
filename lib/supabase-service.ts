@@ -569,4 +569,68 @@ export class SupabaseService {
       return { success: false, error };
     }
   }
+
+  // Get pending commitment approvals (when child commits to task and needs parent approval)
+  static async getPendingCommitmentApprovals() {
+    try {
+      const { data, error } = await supabase
+        .from('commitments')
+        .select(`
+          *,
+          task:task_templates!commitments_task_template_id_fkey(*),
+          user:user_profiles!commitments_user_id_fkey(*),
+          issuer:user_profiles!commitments_issuer_id_fkey(*)
+        `)
+        .eq('status', 'pending_approval')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching pending commitment approvals:', error);
+      return [];
+    }
+  }
+
+  // Approve a commitment (parent approves child committing to task)
+  static async approveCommitment(commitmentId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('commitments')
+        .update({ 
+          status: 'accepted',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', commitmentId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error approving commitment:', error);
+      return { success: false, error };
+    }
+  }
+
+  // Deny a commitment (parent denies child committing to task)
+  static async denyCommitment(commitmentId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('commitments')
+        .update({ 
+          status: 'rejected',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', commitmentId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error denying commitment:', error);
+      return { success: false, error };
+    }
+  }
 }
