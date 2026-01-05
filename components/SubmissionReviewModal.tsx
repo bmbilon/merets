@@ -40,9 +40,9 @@ export default function SubmissionReviewModal({
     setProcessing(true);
     try {
       console.log('[APPROVE] Approving submission:', submission.id);
-      
+
       const tipCents = tipAmount ? Math.round(parseFloat(tipAmount) * 100) : 0;
-      
+
       const result = await SupabaseService.approveSubmission(
         submission.id,
         rating,
@@ -51,33 +51,53 @@ export default function SubmissionReviewModal({
         tipCents
       );
 
-      console.log('[APPROVE] Result:', JSON.stringify(result, null, 2));
-      
-      // Function returns array, get first element
-      const data = Array.isArray(result) ? result[0] : result;
-      
-      if (data && data.success) {
-        console.log('[APPROVE] Success:', data);
-        
-        const moneyEarnedCents = data.money_earned_cents || 0;
-        const meretsEarned = data.merets_earned || 0;
+      console.log('[APPROVE] Raw Result:', JSON.stringify(result, null, 2));
 
-        Alert.alert(
-          'Payment Sent! 🎉',
-          `${submission.commitment?.user?.name || 'Kid'} earned $${(moneyEarnedCents / 100).toFixed(2)}`,
-          [{ 
-            text: 'OK', 
-            onPress: () => {
-              onDismiss();
-              onSuccess();
-            }
-          }]
-        );
-      } else {
-        console.error('[APPROVE] Failed - result:', result);
-        console.error('[APPROVE] Error details:', result.error);
-        throw new Error(result.error?.message || 'Approval failed');
+      // Normalize all possible Supabase RPC return shapes
+      // - array of rows
+      // - { data: [...] }
+      // - single object
+      const row =
+        Array.isArray(result) ? result[0] :
+        Array.isArray((result as any)?.data) ? (result as any).data[0] :
+        (result as any);
+
+      const ok =
+        row?.success === true ||
+        row?.success === 'true' ||
+        row?.success === 't' ||
+        row?.success === 1;
+
+      if (!ok) {
+        console.error('[APPROVE] Failed - normalized row:', row);
+        console.error('[APPROVE] Failed - raw result:', result);
+
+        const errMsg =
+          (result as any)?.error?.message ||
+          (row as any)?.error?.message ||
+          'Approval failed';
+
+        throw new Error(errMsg);
       }
+
+      console.log('[APPROVE] Success row:', row);
+
+      // NOTE: money_earned_cents is NOT currently returned by the SQL function.
+      // This will show $0.00 until/if the function is extended.
+      const moneyEarnedCents = row.money_earned_cents ?? 0;
+
+      Alert.alert(
+        'Approved! 🎉',
+        `${submission.commitment?.user?.name || 'Kid'} earned $${(moneyEarnedCents / 100).toFixed(2)}`,
+        [{
+          text: 'OK',
+          onPress: () => {
+            onDismiss();
+            onSuccess();
+          }
+        }]
+      );
+
     } catch (error) {
       console.error('[APPROVE] Error:', error);
       Alert.alert('Error', 'Failed to approve submission. Please try again.');
