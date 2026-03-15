@@ -1,0 +1,14 @@
+# Merets Supabase Environment Config
+# Saved: 2026-03-15
+
+PROJECT_URL=https://bzogqqkptnbtnmpzvdca.supabase.co
+PROJECT_REF=bzogqqkptnbtnmpzvdca
+REGION=West US (Oregon)
+
+ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6b2dxcWtwdG5idG5tcHp2ZGNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3MDYxNjQsImV4cCI6MjA4MjI4MjE2NH0.sRD72Zve-r5tGfAg8rRPFnaaCdFHwLdz59_HIpFgen4
+
+DB_PASSWORD=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
+
+SUPABASE_ACCESS_TOKEN=sbp_047f186c6c53cc18e95c255febe535f1b40cddd5
+
+POOLER_URL=postgresql://postgres.bzogqqkptnbtnmpzvdca@aws-0-us-west-2.pooler.supabase.com:5432/postgres
